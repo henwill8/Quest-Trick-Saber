@@ -112,7 +112,7 @@ class SaberTrickModel {
     void SetupRigidbody(UnityEngine::GameObject* model) {
 
         // il2cpp_utils::LogClass(il2cpp_functions::class_from_system_type(tRigidbody), false);
-        Rigidbody = model->GetComponent<UnityEngine::Rigidbody*>();
+        Rigidbody = model->GetComponentInChildren<UnityEngine::Rigidbody*>();
         if (!Rigidbody) {
             Rigidbody = model->AddComponent<UnityEngine::Rigidbody*>();
         }
@@ -231,6 +231,7 @@ class SaberTrickModel {
         attachedForSpin = true;
         TrickT->set_position(pos);
         TrickT->set_rotation(rot);
+        if (TrailFollowsSaberComponent) _UpdateComponentsWithSaber(TrickSaber);
     }
 
     void EndSpin() {
@@ -241,6 +242,7 @@ class SaberTrickModel {
         attachedForSpin = false;
         TrickModel->SetActive(false);
         RealModel->SetActive(true);
+        if (TrailFollowsSaberComponent) _UpdateComponentsWithSaber(TrickSaber);
     }
 
     void Update() {
