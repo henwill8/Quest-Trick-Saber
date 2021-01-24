@@ -1,25 +1,24 @@
 #pragma once
 
+#include <GlobalNamespace/OVRInput_Button.hpp>
 #include "InputHandler.hpp"
 #include "PluginConfig.hpp"
 #include "AllEnums.hpp"
 
 class ButtonHandler : public InputHandler {
   private:
-    const Controller _oculusController;
-    const Button _button;
+    const GlobalNamespace::OVRInput::Controller _oculusController;
+    const GlobalNamespace::OVRInput::Button _button;
 
   public:
-    ButtonHandler(Controller oculusController, Button button) 
+    ButtonHandler(GlobalNamespace::OVRInput::Controller oculusController, GlobalNamespace::OVRInput::Button button)
       : InputHandler(0.5f), _oculusController(oculusController), _button(button)
     {
-        IsReversed = button == Button::One ? PluginConfig::Instance().ReverseButtonOne
+        IsReversed = button == GlobalNamespace::OVRInput::Button::One ? PluginConfig::Instance().ReverseButtonOne
           : PluginConfig::Instance().ReverseButtonTwo;
     }
 
     float GetInputValue() {
-        static auto* ovrInput = CRASH_UNLESS(il2cpp_utils::GetClassFromName("", "OVRInput"));
-        // let il2cpp_utils cache the method
-        return CRASH_UNLESS(il2cpp_utils::RunMethod<bool>(ovrInput, "Get", _button, _oculusController)) ? 1.0f : 0.0f;
+        return GlobalNamespace::OVRInput::Get(_button, _oculusController) ? 1.0f : 0.0f;
     }
 };

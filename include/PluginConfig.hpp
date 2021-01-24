@@ -71,7 +71,7 @@ class PluginConfig {
 
 	static auto& GetOrAddDefault(ConfigDocument& config, std::string_view member) {
 		if (!config.HasMember(member.data())) {
-			logger().error("config was missing property '%s'! Adding default value to config file.", member.data());
+		 getLogger().error("config was missing property '%s'! Adding default value to config file.", member.data());
 			AddDefault(config, member);
 		}
 		return config[member.data()];
@@ -86,7 +86,7 @@ class PluginConfig {
 		auto& possible = enumValues.at(member.c_str());
 		CRASH_UNLESS(possible.size());
 		if (!possible.count(val)) {
-			logger().error("config had invalid value '%s' for property '%s'! Setting to default.", val, member.data());
+		 getLogger().error("config had invalid value '%s' for property '%s'! Setting to default.", val, member.data());
 			config[member.data()] = ConfigValue(configDefaults.at(member.c_str()), config.GetAllocator());
 			val = config[member.data()].GetString();
 		}
@@ -97,15 +97,15 @@ class PluginConfig {
 	static void CheckRegenConfig(Configuration& config) {
 		auto& doc = config.config;
 		if (!doc.HasMember("regenerateConfig") || doc["regenerateConfig"].GetBool()) {
-			logger().warning("Regenerating config!");
+		 getLogger().warning("Regenerating config!");
 			doc.SetObject();
 			for (auto&& p : configDefaults) {
 				AddDefault(doc, p.first);
 			}
 			config.Write();
-			logger().info("Config regeneration complete!");
+		 getLogger().info("Config regeneration complete!");
 		} else {
-			logger().info("Not regnerating config.");
+		 getLogger().info("Not regnerating config.");
 		}
 	}
 

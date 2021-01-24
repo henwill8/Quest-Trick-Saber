@@ -4,6 +4,7 @@
 #include "PluginConfig.hpp"
 #include "AllEnums.hpp"
 
+#include "UnityEngine/XR/XRNode.hpp"
 #include <string>
 
 class ThumbstickHandler : public InputHandler {
@@ -11,19 +12,17 @@ class ThumbstickHandler : public InputHandler {
     Il2CppString* _inputString;
 
   public:
-    ThumbstickHandler(XRNode node, float threshold, ThumbstickDir thumstickDir) : InputHandler(threshold) {
+    ThumbstickHandler(UnityEngine::XR::XRNode node, float threshold, ThumbstickDir thumstickDir) : InputHandler(threshold) {
         // axis names are from HMLib's VRControllersInputManager
         std::string axis = thumstickDir == ThumbstickDir::Horizontal ? "Horizontal" : "Vertical";
-        axis += node == XRNode::LeftHand ? "LeftHand" : "RightHand";
+        axis += node == UnityEngine::XR::XRNode::LeftHand ? "LeftHand" : "RightHand";
         _inputString = il2cpp_utils::createcsstr(axis, il2cpp_utils::StringType::Manual);
         IsReversed = PluginConfig::Instance().ReverseThumbstick;
     }
 
     float GetInputValue() {
-        static auto* klass = CRASH_UNLESS(il2cpp_utils::GetClassFromName("UnityEngine", "Input"));
-        auto val = CRASH_UNLESS(il2cpp_utils::RunMethod<float>(klass, "GetAxis", _inputString));
-        // if (val != 0) logger().debug("ThumbstickHandler input value: %f", val);
-        return val;
+        // if (val != 0) getLogger().debug("ThumbstickHandler input value: %f", val);
+        return UnityEngine::Input::GetAxis(_inputString);
     }
 
     ~ThumbstickHandler() {

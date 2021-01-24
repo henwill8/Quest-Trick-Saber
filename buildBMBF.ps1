@@ -1,10 +1,6 @@
 # Builds a .zip file for loading with BMBF
-$NDKPath = Get-Content $PSScriptRoot/ndkpath.txt
+& $PSScriptRoot/build.ps1
 
-$buildScript = "$NDKPath/build/ndk-build"
-if (-not ($PSVersionTable.PSEdition -eq "Core")) {
-    $buildScript += ".cmd"
+if ($?) {
+    Compress-Archive -Path "./libs/arm64-v8a/libTrickSaber.so","./libs/arm64-v8a/libbs-utils.so", "./libs/arm64-v8a/libbeatsaber-hook_1_0_10.so", "./bmbfmod.json" -DestinationPath "./TrickSaber_v0.3.0.zip" -Update
 }
-
-& $buildScript NDK_PROJECT_PATH=$PSScriptRoot APP_BUILD_SCRIPT=$PSScriptRoot/Android.mk NDK_APPLICATION_MK=$PSScriptRoot/Application.mk
-Compress-Archive -Path "./bmbfmod.json","./libs/arm64-v8a/libtricksaber.so","./libs/arm64-v8a/libbeatsaber-hook_0_5_4.so","./libs/arm64-v8a/libbs-utils.so" -DestinationPath "./TrickSaber_v0.2.2.zip" -Update

@@ -7,8 +7,8 @@
         "See https://tonimacaroni.github.io/TrickSaber-Docs/Configuration for config explanations."
     ],
     "category": "Gameplay",
-    "gameVersion": "1.11.1",
-    "version": "0.2.2",
+    "gameVersion": "1.13.0",
+    "version": "0.3.0",
     "platform": "Quest",
     "components": [
         {
@@ -23,7 +23,7 @@
         {
             "type": "HookModLibrary",
             "installAction": {
-                "installLibraryFile": "libbeatsaber-hook_0_5_4.so"
+                "installLibraryFile": "libbeatsaber-hook_1_0_10.so"
             }
         },
         {

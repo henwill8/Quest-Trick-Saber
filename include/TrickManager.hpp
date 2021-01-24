@@ -3,11 +3,16 @@
 #include <dlfcn.h>
 #include <unordered_map>
 #include <unordered_set>
+#include <UnityEngine/BoxCollider.hpp>
 
 #include "beatsaber-hook/shared/utils/typedefs.h"
 #include "AllEnums.hpp"
 #include "InputHandler.hpp"
 #include "SaberTrickModel.hpp"
+#include "GlobalNamespace/VRController.hpp"
+#include "GlobalNamespace/IVRPlatformHelper.hpp"
+#include "GlobalNamespace/Saber.hpp"
+#include "UnityEngine/Transform.hpp"
 
 // Conventions:
 // tX means the type (usually System.Type i.e. Il2CppReflectionType) of X
@@ -15,14 +20,14 @@
 // xT means the .transform of unity object X
 
 
-const Vector3 Vector3_Zero = {0.0f, 0.0f, 0.0f};
-const Vector3 Vector3_Right = {1.0f, 0.0f, 0.0f};
-const Quaternion Quaternion_Identity = {0.0f, 0.0f, 0.0f, 1.0f};
+const UnityEngine::Vector3 Vector3_Zero = UnityEngine::Vector3(0.0f, 0.0f, 0.0f);
+const UnityEngine::Vector3 Vector3_Right = UnityEngine::Vector3(1.0f, 0.0f, 0.0f);
+const UnityEngine::Quaternion Quaternion_Identity = UnityEngine::Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
 
 struct ValueTuple {
-    Vector3 item1;
-    Quaternion item2;
+    UnityEngine::Vector3 item1;
+    UnityEngine::Quaternion item2;
 };
 
 
@@ -47,8 +52,8 @@ class TrickManager {
     public:
         void LogEverything();
         bool _isLeftSaber = false;
-        Il2CppObject* Saber;         // ::Saber
-        Il2CppObject* VRController;  // ::VRController
+        GlobalNamespace::Saber* Saber;         // ::Saber
+        GlobalNamespace::VRController* VRController;  // ::VRController
 		TrickManager* other = nullptr;
 		static void StaticClear();
 		void Clear();
@@ -68,7 +73,7 @@ class TrickManager {
 
     private:
 		void Start2();
-		Il2CppObject* FindBasicSaberTransform();
+		UnityEngine::Transform * FindBasicSaberTransform();
         ValueTuple GetTrackingPos();
         void CheckButtons();
         void ThrowStart();
@@ -80,35 +85,35 @@ class TrickManager {
 		void _InPlaceRotate(float amount);
 		void InPlaceRotationReturn();
         void InPlaceRotationEnd();
-		void TrickStart();
-		void TrickEnd();
-		void AddProbe(const Vector3& vel, const Vector3& ang);
-		Vector3 GetAverageVelocity();
-		Vector3 GetAverageAngularVelocity();
-        Il2CppObject* _vrPlatformHelper;  			// ::VRPlatformHelper
+		void TrickStart() const;
+		void TrickEnd() const;
+		void AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang);
+        UnityEngine::Vector3 GetAverageVelocity();
+        UnityEngine::Vector3 GetAverageAngularVelocity();
+        GlobalNamespace::IVRPlatformHelper* _vrPlatformHelper;  			// ::VRPlatformHelper
         ButtonMapping _buttonMapping;
-        Il2CppObject* _collider = nullptr;    		// BoxCollider
-        Vector3       _controllerPosition = Vector3_Zero;
-        Quaternion    _controllerRotation = Quaternion_Identity;
-        Vector3       _prevPos            = Vector3_Zero;
-		Vector3       _angularVelocity    = Vector3_Zero;
-        Quaternion    _prevRot            = Quaternion_Identity;
+        UnityEngine::BoxCollider* _collider = nullptr;    		// BoxCollider
+        UnityEngine::Vector3       _controllerPosition = Vector3_Zero;
+        UnityEngine::Quaternion    _controllerRotation = Quaternion_Identity;
+        UnityEngine::Vector3       _prevPos            = Vector3_Zero;
+        UnityEngine::Vector3       _angularVelocity    = Vector3_Zero;
+        UnityEngine::Quaternion    _prevRot            = Quaternion_Identity;
         float         _currentRotation;
         float         _saberSpeed         = 0.0f;
         float         _saberRotSpeed      = 0.0f;
 		size_t _currentProbeIndex;
-		std::vector<Vector3> _velocityBuffer;
-		std::vector<Vector3> _angularVelocityBuffer;
+		std::vector<UnityEngine::Vector3> _velocityBuffer;
+		std::vector<UnityEngine::Vector3> _angularVelocityBuffer;
 		float _spinSpeed;
 		float _finalSpinSpeed;
 		SaberTrickModel* _saberTrickModel = nullptr;
 		float _timeSinceStart = 0.0f;
-		Il2CppObject* _originalSaberModelT = nullptr;
+		UnityEngine::Transform* _originalSaberModelT = nullptr;
 		Il2CppString* _saberName = nullptr;
 		Il2CppString* _basicSaberName = nullptr;  // only exists up until Start2
-		Il2CppObject* _saberT = nullptr;  // needed for effecient Start2 checking in Update
+		UnityEngine::Transform* _saberT = nullptr;  // needed for effecient Start2 checking in Update
 		// Vector3 _VRController_position_offset = Vector3_Zero;
-		Vector3 _throwReturnDirection = Vector3_Zero;
+        UnityEngine::Vector3 _throwReturnDirection = Vector3_Zero;
 		// float _prevThrowReturnDistance;
-		Il2CppObject* _fakeTransform;  // will "replace" VRController's transform during trickCutting throws
+		UnityEngine::Transform* _fakeTransform;  // will "replace" VRController's transform during trickCutting throws
 };

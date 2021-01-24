@@ -1,15 +1,16 @@
 #pragma once
 
 #include <functional>
-
+#include <UnityEngine/XR/InputDevice.hpp>
+#include "GlobalNamespace/OVRInput_Axis1D.hpp"
 #include "InputHandler.hpp"
 #include "PluginConfig.hpp"
 #include "AllEnums.hpp"
 
 class GripHandler : public InputHandler {
   private:
-    const Controller _oculusController;
-    Il2CppObject* _controllerInputDevice;  // UnityEngine.XR.InputDevice
+    const GlobalNamespace::OVRInput::Controller _oculusController;
+    UnityEngine::XR::InputDevice _controllerInputDevice;  // UnityEngine.XR.InputDevice
 
     typedef float (GripHandler::*MemFn)();
     MemFn _valueFunc;
@@ -28,15 +29,13 @@ class GripHandler : public InputHandler {
 
     //CommomUsages doesn't work well with Touch Controllers, so we need to use the Oculus function for them
     float GetValueOculus() {
-        static auto primaryHandTrigger = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Axis1D>(
-            "", "OVRInput/Axis1D", "PrimaryHandTrigger"));
-        static auto* ovrInput = CRASH_UNLESS(il2cpp_utils::GetClassFromName("", "OVRInput"));
+        static auto primaryHandTrigger = GlobalNamespace::OVRInput::Axis1D::PrimaryHandTrigger;
         // let il2cpp_utils cache the method
-        return CRASH_UNLESS(il2cpp_utils::RunMethod<float>(ovrInput, "Get", primaryHandTrigger, _oculusController));
+        return GlobalNamespace::OVRInput::Get(primaryHandTrigger, _oculusController);
     }
 
   public:
-    GripHandler(VRSystem vrSystem, Controller oculusController, Il2CppObject* controllerInputDevice, float threshold)
+    GripHandler(VRSystem vrSystem, GlobalNamespace::OVRInput::Controller oculusController, UnityEngine::XR::InputDevice controllerInputDevice, float threshold)
     : InputHandler(threshold), _oculusController(oculusController), _controllerInputDevice(controllerInputDevice) {
         _valueFunc = (vrSystem == VRSystem::Oculus) ? &GripHandler::GetValueOculus : &GripHandler::GetValueSteam;
 
@@ -47,7 +46,7 @@ class GripHandler : public InputHandler {
 
     float GetInputValue() {
         auto val = CALL_MEMFN_ON_PTR(this, _valueFunc)();
-        // if (val != 0) logger().debug("GripHandler input value: %f", val);
+        // if (val != 0) getLogger().debug("GripHandler input value: %f", val);
         return val;
     }
 };

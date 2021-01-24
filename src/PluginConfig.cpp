@@ -34,7 +34,7 @@ void PluginConfig::Reload() {
     SpinDirection = (SpinDir)ValidatedEnumMember(doc, "SpinDirection");
     ControllerSnapThreshold = GetOrAddDefault(doc, "ControllerSnapThreshold").GetFloat();
     if (ControllerSnapThreshold < 0) {
-        logger().error("config's ControllerSnapThreshold was negative (specifically, %f)! Setting to default.", ControllerSnapThreshold);
+        getLogger().error("config's ControllerSnapThreshold was negative (specifically, %f)! Setting to default.", ControllerSnapThreshold);
         ControllerSnapThreshold = configDefaults.at("ControllerSnapThreshold").GetFloat();
         // TODO: write new value to config?
     }

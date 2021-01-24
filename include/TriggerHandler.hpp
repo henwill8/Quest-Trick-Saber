@@ -3,24 +3,23 @@
 #include "InputHandler.hpp"
 #include "PluginConfig.hpp"
 #include "AllEnums.hpp"
+#include "UnityEngine/Input.hpp"
 
 class TriggerHandler : public InputHandler {
   private:
     Il2CppString* _inputString;
 
   public:
-    TriggerHandler(XRNode node, float threshold) : InputHandler(threshold) {
+    TriggerHandler(UnityEngine::XR::XRNode node, float threshold) : InputHandler(threshold) {
         // axis names are from HMLib's VRControllersInputManager
-        auto str = (node == XRNode::LeftHand) ? "TriggerLeftHand" : "TriggerRightHand";
+        auto str = (node == UnityEngine::XR::XRNode::LeftHand) ? "TriggerLeftHand" : "TriggerRightHand";
         _inputString = il2cpp_utils::createcsstr(str, il2cpp_utils::StringType::Manual);
         IsReversed = PluginConfig::Instance().ReverseTrigger;
     }
 
     float GetInputValue() {
-        static auto* klass = CRASH_UNLESS(il2cpp_utils::GetClassFromName("UnityEngine", "Input"));
-        auto val = CRASH_UNLESS(il2cpp_utils::RunMethod<float>(klass, "GetAxis", _inputString));
-        // if (val != 0) logger().debug("TriggerHandler input value: %f", val);
-        return val;
+        // if (val != 0) getLogger().debug("TriggerHandler input value: %f", val);
+        return UnityEngine::Input::GetAxis(_inputString);
     }
 
     ~TriggerHandler() {
