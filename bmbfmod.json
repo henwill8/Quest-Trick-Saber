@@ -31,6 +31,12 @@
             "installAction": {
                 "installLibraryFile": "libbs-utils.so"
             }
+        },
+        {
+            "type": "HookModLibrary",
+            "installAction": {
+                "installLibraryFile": "libcodegen_0_6_1.so"
+            }
         }
     ]
 }
