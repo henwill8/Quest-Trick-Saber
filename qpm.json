@@ -5,10 +5,10 @@
     "name": "TrickSaber",
     "id": "TrickSaber",
     "version": "0.3.0",
-    "url": "https://github.com/zoller27osu/Quest-Trick-Saber",
+    "url": "https://github.com/Fernthedev/Quest-Trick-Saber",
     "additionalData": {
-      "soLink": "https://github.com/zoller27osu/Quest-Trick-Saber/releases/download/v0.2.0/libtricksaber.so",
-      "debugSoLink": "https://github.com/zoller27osu/Quest-Trick-Saber/releases/download/v0.2.0/libtricksaber_debug.so"
+      "soLink": "https://github.com/Fernthedev/Quest-Trick-Saber/releases/download/v0.3.0/libtricksaber.so",
+      "debugSoLink": "https://github.com/Fernthedev/Quest-Trick-Saber/releases/download/v0.3.0/libtricksaber_debug.so"
     }
   },
   "dependencies": [
