@@ -18,6 +18,7 @@
 #include "GlobalNamespace/SaberBurnMarkArea.hpp"
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ObstacleSaberSparkleEffectManager.hpp"
+#include "custom-types/shared/register.hpp"
 
 #include "GlobalNamespace/GameScenesManager.hpp"
 #include "System/Action.hpp"
@@ -112,7 +113,6 @@ MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
 }
 
 MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
-    getLogger().info("Saber manual update");
     Saber_ManualUpdate(self);
     if (self == leftSaber.Saber) {
         leftSaber.Update();
@@ -240,6 +240,10 @@ extern "C" void load() {
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::SaberBurnMarkArea*));
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::SaberBurnMarkSparkles*));
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::ObstacleSaberSparkleEffectManager*));
+
+    getLogger().info("Registering custom types");
+    custom_types::Register::RegisterType<TrickSaber::TrickSaberTrailData>();
+    getLogger().info("Registered types");
 
     getLogger().info("Installed all hooks!");
 }

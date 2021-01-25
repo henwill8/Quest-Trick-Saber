@@ -30,6 +30,11 @@
       "id": "codegen",
       "versionRange": "<=0.6.1",
       "additionalData": {}
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "*",
+      "additionalData": {}
     }
   ],
   "additionalData": {}

@@ -45,6 +45,12 @@ LOCAL_MODULE := modloader
 LOCAL_EXPORT_C_INCLUDES := extern/modloader
 LOCAL_SRC_FILES := extern/libmodloader.so
 include $(PREBUILT_SHARED_LIBRARY)
+# Creating prebuilt for dependency: custom-types - version: 0.4.3
+include $(CLEAR_VARS)
+LOCAL_MODULE := custom-types
+LOCAL_EXPORT_C_INCLUDES := extern/custom-types
+LOCAL_SRC_FILES := extern/libcustom-types.so
+include $(PREBUILT_SHARED_LIBRARY)
 
 
 include $(CLEAR_VARS)
@@ -56,6 +62,7 @@ LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_0_10
 LOCAL_SHARED_LIBRARIES += bs-utils
 LOCAL_SHARED_LIBRARIES += codegen_0_6_1
+LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_LDLIBS += -llog
 LOCAL_CFLAGS += -I'extern/libil2cpp/il2cpp/libil2cpp' -DID='"TrickSaber"' -DVERSION='"0.2.2"' -I'./shared' -I'./extern' -isystem'extern/codegen/include'
 LOCAL_CPPFLAGS += -std=c++2a

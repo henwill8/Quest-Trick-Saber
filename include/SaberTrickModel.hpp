@@ -12,6 +12,7 @@
 #include "UnityEngine/Collider.hpp"
 #include "UnityEngine/MeshFilter.hpp"
 #include "GlobalNamespace/Saber.hpp"
+#include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "GlobalNamespace/SaberType.hpp"
 #include "GlobalNamespace/SetSaberGlowColor.hpp"
 #include "GlobalNamespace/SetSaberFakeGlowColor.hpp"
@@ -19,7 +20,9 @@
 #include "GlobalNamespace/SaberModelContainer.hpp"
 #include "GlobalNamespace/SaberModelController.hpp"
 #include "GlobalNamespace/SaberTrail.hpp"
+#include "GlobalNamespace/SaberMovementData.hpp"
 #include "System/Collections/Generic/List_1.hpp"
+#include "SaberTrickTrail.hpp"
 
 class SaberTrickModel {
   public:
@@ -50,6 +53,8 @@ class SaberTrickModel {
             FixBasicTrickSaber(TrickModel, basicSaber);
             AddTrickRigidbody();
 
+
+
             auto* str = CRASH_UNLESS(il2cpp_utils::createcsstr("VRGameCore"));
             auto* vrGameCore = UnityEngine::GameObject::Find(str);
             auto* vrGameCoreT = vrGameCore->get_transform();
@@ -58,6 +63,7 @@ class SaberTrickModel {
             trickModelT->SetParent(vrGameCoreT);
             TrickModel->SetActive(false);
         }
+
         getLogger().debug("Leaving SaberTrickModel construction!");
     }
 
@@ -135,6 +141,47 @@ class SaberTrickModel {
 
         }
 
+        auto* trickT = TrickModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(TrickModel, "transform"));
+        auto* origT = OriginalSaberModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(OriginalSaberModel, "transform"));
+
+        auto pos = origT->get_position(); //CRASH_UNLESS(il2cpp_utils::GetPropertyValue<Vector3>(origT, "position"));
+        auto rot = origT->get_rotation(); //CRASH_UNLESS(il2cpp_utils::GetPropertyValue<Quaternion>(origT, "rotation"));
+
+        trickT->set_position(pos);
+        trickT->set_rotation(rot);
+
+        if (basicSaber) {
+//                TrickModel->GetComponent<GlobalNamespace::SaberTrail*>()->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(GlobalNamespace::SaberMovementData::New_ctor());
+            auto* trails = TrickModel->GetComponentsInChildren<GlobalNamespace::SaberTrail*>(true);
+            getLogger().debug("trick saber trails.length: %u", fakeGlows->Length());
+            for (int i = 0; i < trails->Length(); i++) {
+                GlobalNamespace::SaberTrail *obj = trails->values[i];
+
+                auto *trailStart = UnityEngine::GameObject::New_ctor();
+                auto *trailEnd = UnityEngine::GameObject::New_ctor();
+
+
+                trailStart->get_transform()->SetParent(obj->get_transform(), false);
+//                trailStart->get_transform()->set_localPosition(saberScript->saberBladeBottomTransform->get_position());
+//                trailStart->get_transform()->set_localRotation(saberScript->saberBladeBottomTransform->get_rotation());
+//                trailStart->get_transform()->set_localPosition(UnityEngine::Vector3(0.0, 0.0, 1.02));
+
+
+                trailEnd->get_transform()->SetParent(saberScript->saberBladeTopTransform, false);
+//                trailEnd->get_transform()->set_localPosition(UnityEngine::Vector3(0.0, 0.0, 0.1));
+//                trailEnd->get_transform()->set_localPosition(saberScript->saberBladeTopTransform->get_position());
+//                trailEnd->get_transform()->set_localRotation(saberScript->saberBladeTopTransform->get_rotation());
+
+                trailStart->set_name(il2cpp_utils::createcsstr("TrailStart"));
+                trailEnd->set_name(il2cpp_utils::createcsstr("TrailEnd"));
+
+                if (obj->get_gameObject()->GetComponents<TrickSaber::TrickSaberTrailData*>()->Length() == 0)
+                    obj->get_gameObject()->AddComponent<TrickSaber::TrickSaberTrailData*>();
+
+
+            }
+        }
+
         saberModelController->Init(saberModelContainerT, saberModelContainer->saber);
     }
 
@@ -154,7 +201,8 @@ class SaberTrickModel {
 
 
         if (basicSaber) {
-            RemoveTrail();
+//            TODO: CHECK
+//            RemoveTrail();
         }
 
         SaberGO = TrickModel;
@@ -288,6 +336,9 @@ class SaberTrickModel {
         trailComponents = nullptr;
         trickTrailComponents = nullptr;
     }
+
+
+
 
   private:
     UnityEngine::GameObject* OriginalSaberModel = nullptr;  // GameObject
