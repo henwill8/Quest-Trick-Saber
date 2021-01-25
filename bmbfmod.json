@@ -7,7 +7,7 @@
         "See https://tonimacaroni.github.io/TrickSaber-Docs/Configuration for config explanations."
     ],
     "category": "Gameplay",
-    "gameVersion": "1.13.0",
+    "gameVersion": "1.13.2",
     "version": "0.3.0",
     "platform": "Quest",
     "components": [

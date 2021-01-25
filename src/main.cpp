@@ -11,12 +11,19 @@
 #include "VRUIControls/VRPointer.hpp"
 #include "GlobalNamespace/VRController.hpp"
 #include "UnityEngine/XR/XRNode.hpp"
+#include "UnityEngine/SceneManagement/SceneManager.hpp"
+#include "UnityEngine/SceneManagement/LoadSceneMode.hpp"
 #include "GlobalNamespace/GamePause.hpp"
 #include "GlobalNamespace/OculusVRHelper.hpp"
 #include "GlobalNamespace/SaberBurnMarkArea.hpp"
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ObstacleSaberSparkleEffectManager.hpp"
 
+#include "GlobalNamespace/GameScenesManager.hpp"
+#include "System/Action.hpp"
+#include "System/Action_1.hpp"
+#include "Zenject/DiContainer.hpp"
+#include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
 
 using namespace GlobalNamespace;
 
@@ -38,9 +45,10 @@ Saber* RealSaber = nullptr;
 TrickManager leftSaber;
 TrickManager rightSaber;
 
-MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, Scene scene, int mode) {
-    if (auto nameOpt = il2cpp_utils::GetPropertyValue<Il2CppString*>(scene, "name")) {
-        auto* name = *nameOpt;
+MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
+    getLogger().info("SceneManager_Internal_SceneLoaded");
+    if (auto* nameOpt = scene.get_name()) {
+        auto* name = nameOpt;
         auto str = to_utf8(csstrtostr(name));
         getLogger().debug("Scene name internal: %s", str.c_str());
     }
@@ -52,8 +60,9 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, Scene scene, int m
     SceneManager_Internal_SceneLoaded(scene, mode);
 }
 
-MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, Il2CppObject* self, Il2CppObject* scenesTransitionSetupData,
-        float minDuration, Il2CppObject* afterMinDurationCallback, Il2CppObject* finishCallback) {
+MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameScenesManager* self, GlobalNamespace::ScenesTransitionSetupDataSO* scenesTransitionSetupData,
+                     float minDuration, System::Action* afterMinDurationCallback,
+                     System::Action_1<Zenject::DiContainer*>* finishCallback) {
     getLogger().debug("GameScenesManager_PushScenes");
     GameScenesManager_PushScenes(self, scenesTransitionSetupData, minDuration, afterMinDurationCallback, finishCallback);
     PluginConfig::Instance().Reload();
@@ -103,6 +112,7 @@ MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
 }
 
 MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
+    getLogger().info("Saber manual update");
     Saber_ManualUpdate(self);
     if (self == leftSaber.Saber) {
         leftSaber.Update();
@@ -149,10 +159,6 @@ void EnableBurnMarks(int saberType) {
     }
 }
 
-MAKE_HOOK_OFFSETLESS(OVRInput_Update, void, Il2CppObject* self) {
-    getLogger().debug("OVRInput_Update!");
-    OVRInput_Update(self);
-}
 
 MAKE_HOOK_OFFSETLESS(FixedUpdate, void, GlobalNamespace::OculusVRHelper* self) {
     FixedUpdate(self);
@@ -209,6 +215,7 @@ extern "C" void load() {
     PluginConfig::Init();
     // TODO: config menus
     getLogger().info("Installing hooks...");
+
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_SceneLoaded, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_SceneLoaded", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), GameScenesManager_PushScenes, il2cpp_utils::FindMethodUnsafe("", "GameScenesManager", "PushScenes", 4));
     INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_Start, il2cpp_utils::FindMethod("", "Saber", "Start"));
@@ -224,7 +231,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(getLogger(), SaberManager_Start, il2cpp_utils::FindMethod("", "SaberManager", "Start"));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Start, il2cpp_utils::FindMethod("", "SaberClashEffect", "Start"));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
+//    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethod("", "VRController", "Update"));
 
