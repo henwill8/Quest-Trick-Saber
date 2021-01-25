@@ -36,7 +36,7 @@ Logger& getLogger() {
 
 extern "C" void setup(ModInfo& info) {
     info.id      = "TrickSaber";
-    info.version = "0.2.2";
+    info.version = "0.3.0";
     modInfo      = info;
     getLogger().info("Leaving setup!");
 }
