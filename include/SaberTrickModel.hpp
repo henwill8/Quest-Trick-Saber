@@ -198,13 +198,6 @@ class SaberTrickModel {
         trickT->set_rotation(rot);
         OriginalSaberModel->SetActive(false);
 
-
-
-        if (basicSaber) {
-//            TODO: CHECK
-//            RemoveTrail();
-        }
-
         SaberGO = TrickModel;
     }
 
@@ -213,10 +206,6 @@ class SaberTrickModel {
 
         OriginalSaberModel->SetActive(true);
         TrickModel->SetActive(false);
-
-        if (basicSaber) {
-            EnableTrail();
-        }
 
         SaberGO = OriginalSaberModel;
     }
@@ -229,6 +218,8 @@ class SaberTrickModel {
     void RemoveTrail()
     {
         getLogger().info("RemoveTrail");
+        return;
+
         if (OriginalSaberModel == nullptr)
         {
             getLogger().error("basicSaberModel was null, not removing trail");
