@@ -10,6 +10,7 @@
 #include "UnityEngine/Rigidbody.hpp"
 #include "UnityEngine/Transform.hpp"
 #include "UnityEngine/Collider.hpp"
+#include "UnityEngine/MeshFilter.hpp"
 #include "GlobalNamespace/Saber.hpp"
 #include "GlobalNamespace/SaberType.hpp"
 #include "GlobalNamespace/SetSaberGlowColor.hpp"
@@ -17,15 +18,20 @@
 #include "GlobalNamespace/SaberTypeObject.hpp"
 #include "GlobalNamespace/SaberModelContainer.hpp"
 #include "GlobalNamespace/SaberModelController.hpp"
+#include "GlobalNamespace/SaberTrail.hpp"
 #include "System/Collections/Generic/List_1.hpp"
 
 class SaberTrickModel {
   public:
     UnityEngine::Rigidbody* Rigidbody = nullptr;
     UnityEngine::GameObject* SaberGO;  // GameObject
+    GlobalNamespace::Saber* saberScript;
+    bool basicSaber;
 
-    SaberTrickModel(UnityEngine::GameObject* SaberModel, bool basicSaber) {
+    SaberTrickModel(GlobalNamespace::Saber* saber, UnityEngine::GameObject* SaberModel, bool basicSaber) {
         CRASH_UNLESS(SaberModel);
+        this->basicSaber = basicSaber;
+        saberScript = saber;
         getLogger().debug("SaberTrickModel construction!");
         // il2cpp_utils::LogClass(il2cpp_functions::class_from_system_type(tRigidbody), false);
 
@@ -92,7 +98,7 @@ class SaberTrickModel {
         if (!basic) return;
         getLogger().debug("Fixing basic trick saber color!");
 
-        GlobalNamespace::SaberModelContainer* saberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(true)->values[0];
+        GlobalNamespace::SaberModelContainer* saberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(false)->values[0];
 
         GlobalNamespace::SaberTypeObject* _saberTypeObject = saberModelContainer->saber->saberType;
         GlobalNamespace::SaberType saberType = _saberTypeObject->saberType; // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(_saberTypeObject, "saberType"));
@@ -126,6 +132,7 @@ class SaberTrickModel {
             GlobalNamespace::SetSaberFakeGlowColor* obj = fakeGlows->values[i];
 
             obj->colorManager = colorMgr;
+
         }
 
         saberModelController->Init(saberModelContainerT, saberModelContainer->saber);
@@ -144,6 +151,12 @@ class SaberTrickModel {
         trickT->set_rotation(rot);
         OriginalSaberModel->SetActive(false);
 
+
+
+        if (basicSaber) {
+            RemoveTrail();
+        }
+
         SaberGO = TrickModel;
     }
 
@@ -152,11 +165,133 @@ class SaberTrickModel {
 
         OriginalSaberModel->SetActive(true);
         TrickModel->SetActive(false);
+
+        if (basicSaber) {
+            EnableTrail();
+        }
+
         SaberGO = OriginalSaberModel;
     }
 
 
+    /**
+     * Stolen from Qosmetics https://github.com/RedBrumbler/Qosmetics/blob/227ca78ac244918876ac1e79418e7f98df4586fd/src/Utils/TrailUtils.cpp
+     * @param basicSaberModel
+     */
+    void RemoveTrail()
+    {
+        getLogger().info("RemoveTrail");
+        if (OriginalSaberModel == nullptr)
+        {
+            getLogger().error("basicSaberModel was null, not removing trail");
+            return;
+        }
+
+        trailComponents = OriginalSaberModel->GetComponentsInChildren<GlobalNamespace::SaberTrail*>();
+        trickTrailComponents = TrickModel->GetComponentsInChildren<GlobalNamespace::SaberTrail*>();
+
+
+        if (trailComponents == nullptr || trailComponents->Length() == 0)
+        {
+            getLogger().error("Finding weapontrail failed, skipping remove trail...");
+            return;
+        }
+        else
+        {
+            getLogger().info("Removing original trail %i", trailComponents->get_Length());
+        }
+
+        for (int i = 0; i < trailComponents->Length(); i++) {
+
+            auto* trailComponent = trailComponents->values[i];
+
+            // disabled component
+            if (trailComponent->trailRenderer == nullptr) {
+                getLogger().error("trailRenderer was nullptr, couldn't disable it");
+                return;
+            }
+
+//            trailComponent->trailDuration = 0.0f;
+//            trailComponent->whiteSectionMaxDuration = 0.0f;
+            trailComponent->set_enabled(false);
+        }
+
+        for (int i = 0; i < trickTrailComponents->Length(); i++) {
+
+            auto* trailComponent = trickTrailComponents->values[i];
+
+            // disabled component
+            if (trailComponent->trailRenderer == nullptr) {
+                getLogger().error("trailRenderer was nullptr, couldn't disable it");
+                return;
+            }
+
+//            trailComponent->trailDuration = 0.0f;
+//            trailComponent->whiteSectionMaxDuration = 0.0f;
+            trailComponent->set_enabled(false);
+        }
+    }
+
+    /**
+     * Stolen from Qosmetics https://github.com/RedBrumbler/Qosmetics/blob/227ca78ac244918876ac1e79418e7f98df4586fd/src/Utils/TrailUtils.cpp
+     * @param basicSaberModel
+     */
+    void EnableTrail()
+    {
+        getLogger().info("EnableTrail");
+        if (OriginalSaberModel == nullptr)
+        {
+            getLogger().error("basicSaberModel was null, not removing trail");
+            return;
+        }
+
+        if (trailComponents == nullptr || trailComponents->Length() == 0)
+        {
+            getLogger().error("Finding weapontrail failed, skipping remove trail...");
+            return;
+        }
+        else
+        {
+            getLogger().info("Removing original trail");
+        }
+
+        for (int i = 0; i < trailComponents->Length(); i++) {
+
+            auto* trailComponent = trailComponents->values[i];
+
+            // disabled component
+            if (trailComponent->trailRenderer == nullptr) {
+                getLogger().error("trailRenderer was nullptr, couldn't disable it");
+                return;
+            }
+
+//            trailComponent->trailDuration = 0.0f;
+//            trailComponent->whiteSectionMaxDuration = 0.0f;
+            trailComponent->set_enabled(true);
+        }
+
+        for (int i = 0; i < trickTrailComponents->Length(); i++) {
+
+            auto* trailComponent = trickTrailComponents->values[i];
+
+            // disabled component
+            if (trailComponent->trailRenderer == nullptr) {
+                getLogger().error("trailRenderer was nullptr, couldn't disable it");
+                return;
+            }
+
+//            trailComponent->trailDuration = 0.0f;
+//            trailComponent->whiteSectionMaxDuration = 0.0f;
+            trailComponent->set_enabled(true);
+        }
+
+        trailComponents = nullptr;
+        trickTrailComponents = nullptr;
+    }
+
   private:
     UnityEngine::GameObject* OriginalSaberModel = nullptr;  // GameObject
     UnityEngine::GameObject* TrickModel = nullptr;          // GameObject
+    Array<GlobalNamespace::SaberTrail*> *trailComponents = nullptr;
+    Array<GlobalNamespace::SaberTrail*> *trickTrailComponents = nullptr;
 };

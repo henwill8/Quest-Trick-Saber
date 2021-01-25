@@ -66,7 +66,7 @@ class TrickManager {
 		static void StaticFixedUpdate();
 		void FixedUpdate();
         void Update();
-	
+
 	protected:
 		TrickState _throwState;  // initialized in Start
 		TrickState _spinState;

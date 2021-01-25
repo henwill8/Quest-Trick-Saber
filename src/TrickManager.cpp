@@ -302,7 +302,7 @@ void TrickManager::Start2() {
     CRASH_UNLESS(saberModelT);
     auto* saberGO = saberModelT->get_gameObject();
     getLogger().debug("root Saber gameObject: %p", Saber->get_gameObject());
-    _saberTrickModel = new SaberTrickModel(saberGO, saberModelT == basicSaberT);
+    _saberTrickModel = new SaberTrickModel(Saber, saberGO, saberModelT == basicSaberT);
     // note that this is the transform of the whole Saber (as opposed to just the model) iff TrickCutting
     _originalSaberModelT = saberGO->get_transform();
 }
@@ -443,7 +443,6 @@ void TrickManager::FixedUpdate() {
 void TrickManager::Update() {
     if (!_saberTrickModel) {
         _timeSinceStart += getDeltaTime();
-        getLogger().debug("Sabername Update: %i", _saberName);
         if (PluginConfig::Instance().EnableTrickCutting || _saberT->Find(_saberName) ||
                 _timeSinceStart > 1) {
             Start2();
@@ -823,6 +822,10 @@ void TrickManager::InPlaceRotationStart() {
         _currentRotation = 0.0f;
     }
 
+
+    if (_saberTrickModel->basicSaber)
+        _saberTrickModel->RemoveTrail();
+
     if (PluginConfig::Instance().IsVelocityDependent) {
         auto angularVelocity = GetAverageAngularVelocity();
         _spinSpeed = abs(angularVelocity.x) + abs(angularVelocity.y);
@@ -853,6 +856,12 @@ void TrickManager::InPlaceRotationEnd() {
     if (!PluginConfig::Instance().EnableTrickCutting) {
         _originalSaberModelT->set_localRotation(Quaternion_Identity);
     }
+
+    Array<UnityEngine::MeshFilter*>* meshFilters = Saber->GetComponentsInChildren<UnityEngine::MeshFilter*>();
+
+    if (_saberTrickModel->basicSaber && meshFilters != nullptr)
+        _saberTrickModel->EnableTrail();
+
     getLogger().debug("%s spin end!", _isLeftSaber ? "Left" : "Right");
     _spinState = Inactive;
     TrickEnd();
