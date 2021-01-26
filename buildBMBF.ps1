@@ -2,5 +2,5 @@
 & $PSScriptRoot/build.ps1
 
 if ($?) {
-    Compress-Archive -Path "./libs/arm64-v8a/libTrickSaber.so","./libs/arm64-v8a/libbs-utils.so","./libs/arm64-v8a/libbeatsaber-hook_1_0_10.so", "./bmbfmod.json" -DestinationPath "./TrickSaber_v0.3.0.zip" -Update
+    Compress-Archive -Path "./libs/arm64-v8a/libTrickSaber.so","./libs/arm64-v8a/libbs-utils.so","./libs/arm64-v8a/libbeatsaber-hook_1_0_12.so", "./bmbfmod.json" -DestinationPath "./TrickSaber_v0.3.0.zip" -Update
 }

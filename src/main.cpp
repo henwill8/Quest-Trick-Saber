@@ -30,9 +30,6 @@
 #include <string>
 
 #ifdef HAS_CODEGEN
-#define AddConfigValueIncrementFloat(parent, floatConfigValue, decimal, increment, min, max) BeatSaberUI::CreateIncrementSetting(parent, floatConfigValue.GetName(), decimal, increment, floatConfigValue.GetValue(), min, max, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { floatConfigValue.SetValue(value); }))
-
-#define AddConfigValueIncrementInt(parent, intConfigValue, increment, min, max) BeatSaberUI::CreateIncrementSetting(parent, intConfigValue.getName(), 0, 1, intConfigValue.getValue(), min, max, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<int>*>(classof(UnityEngine::Events::UnityAction_1<int>*), (void*)nullptr, +[](int value) { intConfigValue.setValue(value);}))
 
 #define AddConfigValueIncrementEnum(parent, enumConfigValue, enumClass, enumMap) BeatSaberUI::CreateIncrementSetting(parent, enumConfigValue.GetName() + " " + enumMap.at((int) enumConfigValue.GetValue()), 0, 1, (float) enumConfigValue.GetValue(), 0,(int) enumMap.size(), il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { enumConfigValue.SetValue((int)value); }))
 
@@ -60,7 +57,7 @@ extern "C" void setup(ModInfo& info) {
     info.version = "0.3.0";
     modInfo      = info;
     getConfig().Load();
-    getPluginConfig().Init(&getConfig());
+    getPluginConfig().Init(info);
 
     getLogger().info("Leaving setup!");
 }
