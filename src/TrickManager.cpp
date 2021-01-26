@@ -19,6 +19,7 @@
 #include "UnityEngine/Transform.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "main.hpp"
+#include "GlobalNamespace/SaberClashChecker.hpp"
 
 // Define static fields
 constexpr UnityEngine::Space RotateSpace = UnityEngine::Space::Self;
@@ -328,10 +329,6 @@ void TrickManager::Start() {
         // TODO: Is necessary?
 //        CRASH_UNLESS(audioTimeSyncController);
     }
-    getLogger().debug("Saber clash");
-    if (!saberClashEffect) {
-        getLogger().debug("Saber clash: %i", saberClashEffect);
-    }
     getLogger().debug("Rigid body sleep clash");
     if (!RigidbodySleep) {
         RigidbodySleep = (decltype(RigidbodySleep))CRASH_UNLESS(il2cpp_functions::resolve_icall("UnityEngine.Rigidbody::Sleep"));
@@ -587,30 +584,23 @@ void TrickManager::CheckButtons() {
 }
 
 
-void TrickManager::TrickStart() const {
+void TrickManager::TrickStart() {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         // even on throws, we disable this to call Update manually and thus control ordering
         VRController->set_enabled(false);
     } else {
-
-        if (!saberClashEffect)
-            return;
-
-
-        saberClashEffect->set_enabled(false);
+        this->doClashEffect = false;
     }
 }
 
-void TrickManager::TrickEnd() const {
+void TrickManager::TrickEnd() {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
     } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
-        if (!saberClashEffect)
-            return;
-
-        saberClashEffect->set_enabled(true);
+        doClashEffect = true;
     }
 }
+
 
 void ListActiveChildren(Il2CppObject* root, std::string_view name) {
     auto* rootT = CRASH_UNLESS(il2cpp_utils::GetPropertyValue(root, "transform"));

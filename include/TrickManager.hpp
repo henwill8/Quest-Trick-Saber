@@ -51,6 +51,7 @@ struct ButtonMapping {
 class TrickManager {
     public:
         void LogEverything();
+        bool doClashEffect = true;
         bool _isLeftSaber = false;
         GlobalNamespace::Saber* Saber;         // ::Saber
         GlobalNamespace::VRController* VRController;  // ::VRController
@@ -85,8 +86,8 @@ class TrickManager {
 		void _InPlaceRotate(float amount);
 		void InPlaceRotationReturn();
         void InPlaceRotationEnd();
-		void TrickStart() const;
-		void TrickEnd() const;
+		void TrickStart();
+		void TrickEnd();
 		void AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang);
         UnityEngine::Vector3 GetAverageVelocity();
         UnityEngine::Vector3 GetAverageAngularVelocity();

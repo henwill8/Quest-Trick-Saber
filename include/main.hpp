@@ -4,7 +4,7 @@
 #include <dlfcn.h>
 #include "GlobalNamespace/AudioTimeSyncController.hpp"
 #include "beatsaber-hook/shared/utils/logging.hpp"
-#include "GlobalNamespace/SaberClashEffect.hpp"
+#include "GlobalNamespace/SaberClashChecker.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
 
 
@@ -16,7 +16,6 @@ static ModInfo modInfo;
 const Logger& logger();
 static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullptr;
 static GlobalNamespace::SaberManager *saberManager = nullptr;
-static GlobalNamespace::SaberClashEffect *saberClashEffect = nullptr;
 
 void DisableBurnMarks(int saberType);
 void EnableBurnMarks(int saberType);

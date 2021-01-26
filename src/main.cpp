@@ -9,6 +9,7 @@
 #include "GlobalNamespace/OculusVRHelper.hpp"
 #include "GlobalNamespace/SaberBurnMarkArea.hpp"
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
+
 #include "GlobalNamespace/ObstacleSaberSparkleEffectManager.hpp"
 #include "custom-types/shared/register.hpp"
 
@@ -217,16 +218,12 @@ MAKE_HOOK_OFFSETLESS(AudioTimeSyncController_Start, void, AudioTimeSyncControlle
     getLogger().debug("audio time controller: %i");
 }
 
-MAKE_HOOK_OFFSETLESS(SaberClashEffect_Start, void, SaberClashEffect* self) {
-    SaberClashEffect_Start(self);
-    saberClashEffect = self;
-    getLogger().debug("saber clash effect: %i", saberClashEffect);
-}
+MAKE_HOOK_OFFSETLESS(SaberClashChecker_AreSabersClashing, bool, SaberClashChecker* self) {
+    bool val = SaberClashChecker_AreSabersClashing(self);
 
-MAKE_HOOK_OFFSETLESS(SaberClashEffect_Disable, void, SaberClashEffect* self) {
-    SaberClashEffect_Disable(self);
-    saberClashEffect = nullptr;
-    getLogger().debug("saber clash disable effect: %i", saberClashEffect);
+    getLogger().debug("saber clash effect: %i", self);
+
+    return (rightSaber.doClashEffect && leftSaber.doClashEffect) && val;
 }
 
 MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* self) {
@@ -340,7 +337,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(getLogger(), AudioTimeSyncController_Start, il2cpp_utils::FindMethod("", "AudioTimeSyncController", "Start"));
     INSTALL_HOOK_OFFSETLESS(getLogger(), SaberManager_Start, il2cpp_utils::FindMethod("", "SaberManager", "Start"));
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Start, il2cpp_utils::FindMethod("", "SaberClashEffect", "Start"));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashChecker_AreSabersClashing, il2cpp_utils::FindMethodUnsafe("", "SaberClashChecker", "AreSabersClashing", 1));
 //    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethod("", "VRController", "Update"));
