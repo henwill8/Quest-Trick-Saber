@@ -72,28 +72,28 @@ void ButtonMapping::Update() {
     getLogger().debug("isOculus: %i", isOculus);
     auto vrSystem = isOculus ? VRSystem::Oculus : VRSystem::SteamVR;
 
-    auto dir = PluginConfig::Instance().ThumbstickDirection;
+    auto dir = getPluginConfig().ThumbstickDirection.GetValue();
 
     actionHandlers.clear();
-    actionHandlers[PluginConfig::Instance().TriggerAction].insert(std::unique_ptr<InputHandler>(
-        new TriggerHandler(node, PluginConfig::Instance().TriggerThreshold)
+    actionHandlers[(int)getPluginConfig().TriggerAction.GetValue()].insert(std::unique_ptr<InputHandler>(
+        new TriggerHandler(node, getPluginConfig().TriggerThreshold.GetValue())
     ));
-    actionHandlers[PluginConfig::Instance().GripAction].insert(std::unique_ptr<InputHandler>(
-        new GripHandler(vrSystem, oculusController, controllerInputDevice, PluginConfig::Instance().GripThreshold)
+    actionHandlers[(int)getPluginConfig().GripAction.GetValue()].insert(std::unique_ptr<InputHandler>(
+        new GripHandler(vrSystem, oculusController, controllerInputDevice, getPluginConfig().GripThreshold.GetValue())
     ));
-    actionHandlers[PluginConfig::Instance().ThumbstickAction].insert(std::unique_ptr<InputHandler>(
-        new ThumbstickHandler(node, PluginConfig::Instance().ThumbstickThreshold, dir)
+    actionHandlers[(int)getPluginConfig().ThumbstickAction.GetValue()].insert(std::unique_ptr<InputHandler>(
+        new ThumbstickHandler(node, getPluginConfig().ThumbstickThreshold.GetValue(), dir)
     ));
-    actionHandlers[PluginConfig::Instance().ButtonOneAction].insert(std::unique_ptr<InputHandler>(
+    actionHandlers[(int)getPluginConfig().ButtonOneAction.GetValue()].insert(std::unique_ptr<InputHandler>(
         new ButtonHandler(oculusController, GlobalNamespace::OVRInput::Button::One)
     ));
-    actionHandlers[PluginConfig::Instance().ButtonTwoAction].insert(std::unique_ptr<InputHandler>(
+    actionHandlers[(int)getPluginConfig().ButtonTwoAction.GetValue()].insert(std::unique_ptr<InputHandler>(
         new ButtonHandler(oculusController, GlobalNamespace::OVRInput::Button::Two)
     ));
-    if (actionHandlers[TrickAction::Throw].empty()) {
+    if (actionHandlers[(int) TrickAction::Throw].empty()) {
         getLogger().warning("No inputs assigned to Throw! Throw will never trigger!");
     }
-    if (actionHandlers[TrickAction::Spin].empty()) {
+    if (actionHandlers[(int) TrickAction::Spin].empty()) {
         getLogger().warning("No inputs assigned to Spin! Spin will never trigger!");
     }
 }
@@ -242,7 +242,7 @@ void TrickManager::Start2() {
     getLogger().debug("TrickManager.Start2!");
     UnityEngine::Transform* saberModelT;
     UnityEngine::Transform* basicSaberT = nullptr;
-    if (!PluginConfig::Instance().EnableTrickCutting) {
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         // Try to find a custom saber - will have same name as _saberT (LeftSaber or RightSaber) but be a child of it
 
         saberModelT = _saberT->Find(_saberName);
@@ -348,7 +348,7 @@ void TrickManager::Start() {
 
     _buttonMapping = ButtonMapping(_isLeftSaber);
 
-    int velBufferSize = PluginConfig::Instance().VelocityBufferSize;
+    int velBufferSize = getPluginConfig().VelocityBufferSize.GetValue();
     _velocityBuffer = std::vector<UnityEngine::Vector3>(velBufferSize);
     _angularVelocityBuffer = std::vector<UnityEngine::Vector3>(velBufferSize);
 
@@ -357,7 +357,7 @@ void TrickManager::Start() {
     getLogger().debug("saberName: %s", to_utf8(csstrtostr(_saberName)).c_str());
     _basicSaberName = il2cpp_utils::createcsstr("BasicSaberModel(Clone)");
 
-    if (PluginConfig::Instance().EnableTrickCutting) {
+    if (getPluginConfig().EnableTrickCutting.GetValue()) {
         if (!VRController_get_transform) {
             getLogger().debug("VRC");
             VRController_get_transform = CRASH_UNLESS(il2cpp_utils::FindMethod("", "VRController", "get_transform"));
@@ -415,7 +415,7 @@ void TrickManager::StaticFixedUpdate() {
     if (_slowmoState == Started) {
         // IEnumerator ApplySlowmoSmooth
         if (_slowmoTimeScale > _targetTimeScale) {
-            _slowmoTimeScale -= PluginConfig::Instance().SlowmoStepAmount;
+            _slowmoTimeScale -= getPluginConfig().SlowmoStepAmount.GetValue();
             SetTimescale(_slowmoTimeScale);
         } else if (_slowmoTimeScale != _targetTimeScale) {
             getLogger().debug("Slowmo == Started; Forcing TimeScale from %f to %f", _slowmoTimeScale, _targetTimeScale);
@@ -425,7 +425,7 @@ void TrickManager::StaticFixedUpdate() {
     } else if (_slowmoState == Ending) {
         // IEnumerator EndSlowmoSmooth
         if (_slowmoTimeScale < _targetTimeScale) {
-            _slowmoTimeScale += PluginConfig::Instance().SlowmoStepAmount;
+            _slowmoTimeScale += getPluginConfig().SlowmoStepAmount.GetValue();
             SetTimescale(_slowmoTimeScale);
         } else if (_slowmoTimeScale != _targetTimeScale) {
             getLogger().debug("Slowmo == Ending; Forcing TimeScale from %f to %f", _slowmoTimeScale, _targetTimeScale);
@@ -443,7 +443,7 @@ void TrickManager::FixedUpdate() {
 void TrickManager::Update() {
     if (!_saberTrickModel) {
         _timeSinceStart += getDeltaTime();
-        if (PluginConfig::Instance().EnableTrickCutting || _saberT->Find(_saberName) ||
+        if (getPluginConfig().EnableTrickCutting.GetValue() || _saberT->Find(_saberName) ||
                 _timeSinceStart > 1) {
             Start2();
         } else {
@@ -461,12 +461,12 @@ void TrickManager::Update() {
         std::optional<UnityEngine::Quaternion> opt = std::optional(tmp);
 
         oRot.swap(opt);
-        // if (PluginConfig::Instance().EnableTrickCutting && oRot) {
+        // if (getPluginConfig().EnableTrickCutting && oRot) {
         //     getLogger().debug("pre-manual VRController.Update rot: {%f, %f, %f, %f}", oRot->w, oRot->x, oRot->y, oRot->z);
         // }
     }
 
-    if (PluginConfig::Instance().EnableTrickCutting && ((_spinState != Inactive) || (_throwState != Inactive))) {
+    if (getPluginConfig().EnableTrickCutting.GetValue() && ((_spinState != Inactive) || (_throwState != Inactive))) {
         VRController->Update(); // sets position and pre-_currentRotation
     }
 
@@ -491,10 +491,10 @@ void TrickManager::Update() {
         auto d = Vector3_Subtract(_controllerPosition, saberPos);
         float distance = Vector3_Magnitude(d);
 
-        if (distance <= PluginConfig::Instance().ControllerSnapThreshold) {
+        if (distance <= getPluginConfig().ControllerSnapThreshold.GetValue()) {
             ThrowEnd();
         } else {
-            float returnSpeed = fmax(distance, 1.0f) * PluginConfig::Instance().ReturnSpeed;
+            float returnSpeed = fmax(distance, 1.0f) * getPluginConfig().ReturnSpeed.GetValue();
             getLogger().debug("distance: %f; return speed: %f", distance, returnSpeed);
             auto dirNorm = d.get_normalized();
             auto newVel = Vector3_Multiply(dirNorm, returnSpeed);
@@ -504,11 +504,11 @@ void TrickManager::Update() {
     }
     if (_spinState == Ending) {
         auto rot = CRASH_UNLESS(oRot);
-        auto targetRot = PluginConfig::Instance().EnableTrickCutting ? _controllerRotation: Quaternion_Identity;
+        auto targetRot = getPluginConfig().EnableTrickCutting.GetValue() ? _controllerRotation: Quaternion_Identity;
 
         float angle = UnityEngine::Quaternion::Angle(rot, targetRot);
         // getLogger().debug("angle: %f (%f)", angle, 360.0f - angle);
-        if (PluginConfig::Instance().CompleteRotationMode) {
+        if (getPluginConfig().CompleteRotationMode.GetValue()) {
             float minSpeed = 8.0f;
             float returnSpinSpeed = _finalSpinSpeed;
             if (abs(returnSpinSpeed) < minSpeed) {
@@ -575,20 +575,20 @@ bool CheckHandlersUp(decltype(ButtonMapping::actionHandlers)::mapped_type& handl
 
 void TrickManager::CheckButtons() {
     float power;
-    if ((_throwState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[TrickAction::Throw], power)) {
+    if ((_throwState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Throw], power)) {
         ThrowStart();
-    } else if ((_throwState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[TrickAction::Throw])) {
+    } else if ((_throwState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Throw])) {
         ThrowReturn();
-    } else if ((_spinState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[TrickAction::Spin], power)) {
+    } else if ((_spinState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Spin], power)) {
         InPlaceRotation(power);
-    } else if ((_spinState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[TrickAction::Spin])) {
+    } else if ((_spinState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin])) {
         InPlaceRotationReturn();
     }
 }
 
 
 void TrickManager::TrickStart() const {
-    if (PluginConfig::Instance().EnableTrickCutting) {
+    if (getPluginConfig().EnableTrickCutting.GetValue()) {
         // even on throws, we disable this to call Update manually and thus control ordering
         VRController->set_enabled(false);
     } else {
@@ -602,7 +602,7 @@ void TrickManager::TrickStart() const {
 }
 
 void TrickManager::TrickEnd() const {
-    if (PluginConfig::Instance().EnableTrickCutting) {
+    if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
     } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
         if (!saberClashEffect)
@@ -688,7 +688,7 @@ void TrickManager::ThrowStart() {
     if (_throwState == Inactive) {
         getLogger().debug("%s throw start!", _isLeftSaber ? "Left" : "Right");
 
-        if (!PluginConfig::Instance().EnableTrickCutting) {
+        if (!getPluginConfig().EnableTrickCutting.GetValue()) {
             _saberTrickModel->ChangeToTrickModel();
             // ListActiveChildren(Saber, "Saber");
             // ListActiveChildren(_saberTrickModel->SaberGO, "custom saber");
@@ -702,7 +702,7 @@ void TrickManager::ThrowStart() {
         rigidBody->set_isKinematic(false);
 
         UnityEngine::Vector3 velo = GetAverageVelocity();
-        float _velocityMultiplier = PluginConfig::Instance().ThrowVelocity;
+        float _velocityMultiplier = getPluginConfig().ThrowVelocity.GetValue();
         velo = Vector3_Multiply(velo, 3 * _velocityMultiplier);
         rigidBody->set_velocity(velo);
 
@@ -732,7 +732,7 @@ void TrickManager::ThrowStart() {
         addTorque(rigidBody, &torqWorld, 0);
         getLogger().debug("Added torque");
 
-        if (PluginConfig::Instance().EnableTrickCutting) {
+        if (getPluginConfig().EnableTrickCutting.GetValue()) {
             fakeTransforms.emplace(VRController, _fakeTransform);
             if (!VRController_transform_is_hooked) {
                 INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_get_transform_hook, VRController_get_transform);
@@ -744,14 +744,14 @@ void TrickManager::ThrowStart() {
 
         _throwState = Started;
 
-        if (PluginConfig::Instance().SlowmoDuringThrow) {
+        if (getPluginConfig().SlowmoDuringThrow.GetValue()) {
             _audioSource = audioTimeSyncController->get_audioSource();
             if (_slowmoState != Started) {
                 // ApplySlowmoSmooth
                 _slowmoTimeScale = GetTimescale();
                 _originalTimeScale = (_slowmoState == Inactive) ? _slowmoTimeScale : _targetTimeScale;
 
-                _targetTimeScale = _originalTimeScale - PluginConfig::Instance().SlowmoAmount;
+                _targetTimeScale = _originalTimeScale - getPluginConfig().SlowmoAmount.GetValue();
                 if (_targetTimeScale < 0.1f) _targetTimeScale = 0.1f;
 
                 getLogger().debug("Starting slowmo; TimeScale from %f (%f original) to %f", _slowmoTimeScale, _originalTimeScale, _targetTimeScale);
@@ -800,7 +800,7 @@ void TrickManager::ThrowReturn() {
 void TrickManager::ThrowEnd() {
     getLogger().debug("%s throw end!", _isLeftSaber ? "Left" : "Right");
     _saberTrickModel->Rigidbody->set_isKinematic(true);  // restore
-    if (!PluginConfig::Instance().EnableTrickCutting) {
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _saberTrickModel->ChangeToActualSaber();
     } else {
         _collider->set_enabled(true);
@@ -818,7 +818,7 @@ void TrickManager::ThrowEnd() {
 void TrickManager::InPlaceRotationStart() {
     getLogger().debug("%s rotate start!", _isLeftSaber ? "Left" : "Right");
     TrickStart();
-    if (PluginConfig::Instance().EnableTrickCutting) {
+    if (getPluginConfig().EnableTrickCutting.GetValue()) {
         _currentRotation = 0.0f;
     }
 
@@ -826,7 +826,7 @@ void TrickManager::InPlaceRotationStart() {
     if (_saberTrickModel->basicSaber)
         _saberTrickModel->RemoveTrail();
 
-    if (PluginConfig::Instance().IsVelocityDependent) {
+    if (getPluginConfig().IsVelocityDependent.GetValue()) {
         auto angularVelocity = GetAverageAngularVelocity();
         _spinSpeed = abs(angularVelocity.x) + abs(angularVelocity.y);
         // getLogger().debug("_spinSpeed: %f", _spinSpeed);
@@ -835,10 +835,10 @@ void TrickManager::InPlaceRotationStart() {
         if (angularVelocity.x < 0) _spinSpeed *= -1;
     } else {
         float speed = 30;
-        if (PluginConfig::Instance().SpinDirection == SpinDir::Backward) speed *= -1;
+        if (getPluginConfig().SpinDirection.GetValue() == (int) SpinDir::Backward) speed *= -1;
         _spinSpeed = speed;
     }
-    _spinSpeed *= PluginConfig::Instance().SpinSpeed;
+    _spinSpeed *= getPluginConfig().SpinSpeed.GetValue();
     _spinState = Started;
 }
 
@@ -853,7 +853,7 @@ void TrickManager::InPlaceRotationReturn() {
 }
 
 void TrickManager::InPlaceRotationEnd() {
-    if (!PluginConfig::Instance().EnableTrickCutting) {
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->set_localRotation(Quaternion_Identity);
     }
 
@@ -868,7 +868,7 @@ void TrickManager::InPlaceRotationEnd() {
 }
 
 void TrickManager::_InPlaceRotate(float amount) {
-    if (!PluginConfig::Instance().EnableTrickCutting) {
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->Rotate(Vector3_Right, amount, RotateSpace);
     } else {
         _currentRotation += amount;
@@ -883,7 +883,7 @@ void TrickManager::InPlaceRotation(float power) {
         getLogger().debug("%s rotation continues! power %f", _isLeftSaber ? "Left" : "Right", power);
     }
 
-    if (PluginConfig::Instance().IsVelocityDependent) {
+    if (getPluginConfig().IsVelocityDependent.GetValue()) {
         _finalSpinSpeed = _spinSpeed;
     } else {
         _finalSpinSpeed = _spinSpeed * pow(power, 3.0f);  // power is the degree to which the held buttons are pressed

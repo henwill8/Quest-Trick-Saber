@@ -12,12 +12,12 @@ class ThumbstickHandler : public InputHandler {
     Il2CppString* _inputString;
 
   public:
-    ThumbstickHandler(UnityEngine::XR::XRNode node, float threshold, ThumbstickDir thumstickDir) : InputHandler(threshold) {
+    ThumbstickHandler(UnityEngine::XR::XRNode node, float threshold, int thumstickDir) : InputHandler(threshold) {
         // axis names are from HMLib's VRControllersInputManager
-        std::string axis = thumstickDir == ThumbstickDir::Horizontal ? "Horizontal" : "Vertical";
+        std::string axis = thumstickDir == (int) ThumbstickDir::Horizontal ? "Horizontal" : "Vertical";
         axis += node == UnityEngine::XR::XRNode::LeftHand ? "LeftHand" : "RightHand";
         _inputString = il2cpp_utils::createcsstr(axis, il2cpp_utils::StringType::Manual);
-        IsReversed = PluginConfig::Instance().ReverseThumbstick;
+        IsReversed = getPluginConfig().ReverseThumbstick.GetValue();
     }
 
     float GetInputValue() {

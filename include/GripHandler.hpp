@@ -39,7 +39,7 @@ class GripHandler : public InputHandler {
     : InputHandler(threshold), _oculusController(oculusController), _controllerInputDevice(controllerInputDevice) {
         _valueFunc = (vrSystem == VRSystem::Oculus) ? &GripHandler::GetValueOculus : &GripHandler::GetValueSteam;
 
-        IsReversed = PluginConfig::Instance().ReverseGrip;
+        IsReversed = getPluginConfig().ReverseGrip.GetValue();
     }
 
     #define CALL_MEMFN_ON_PTR(ptr,memFn)  ((ptr)->*(memFn))

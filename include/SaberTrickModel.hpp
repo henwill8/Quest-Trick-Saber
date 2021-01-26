@@ -40,7 +40,7 @@ class SaberTrickModel {
 
         SaberGO = OriginalSaberModel = SaberModel;
 
-        if (PluginConfig::Instance().EnableTrickCutting) {
+        if (getPluginConfig().EnableTrickCutting.GetValue()) {
             Rigidbody = SaberModel->GetComponent<UnityEngine::Rigidbody*>();
             if (!Rigidbody) {
                 getLogger().warning("Adding rigidbody to original SaberModel?!");
@@ -186,7 +186,7 @@ class SaberTrickModel {
     }
 
     void ChangeToTrickModel() {
-        if (PluginConfig::Instance().EnableTrickCutting) return;
+        if (getPluginConfig().EnableTrickCutting.GetValue()) return;
         TrickModel->SetActive(true);
 
         auto* trickT = TrickModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(TrickModel, "transform"));
@@ -202,7 +202,7 @@ class SaberTrickModel {
     }
 
     void ChangeToActualSaber() {
-        if (PluginConfig::Instance().EnableTrickCutting) return;
+        if (getPluginConfig().EnableTrickCutting.GetValue()) return;
 
         OriginalSaberModel->SetActive(true);
         TrickModel->SetActive(false);

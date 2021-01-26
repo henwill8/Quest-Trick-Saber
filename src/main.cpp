@@ -1,18 +1,10 @@
 #include "../include/main.hpp"
 #include "../include/PluginConfig.hpp"
 #include "../include/TrickManager.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#include "ConfigEnums.hpp"
 #include "UnityEngine/Resources.hpp"
-#include "UnityEngine/Object.hpp"
-#include "GlobalNamespace/PlayerVRControllersManager.hpp"
 #include "GlobalNamespace/GameSongController.hpp"
-#include "GlobalNamespace/Saber.hpp"
-#include "GlobalNamespace/SaberTypeObject.hpp"
-#include "VRUIControls/VRPointer.hpp"
-#include "GlobalNamespace/VRController.hpp"
-#include "UnityEngine/XR/XRNode.hpp"
 #include "UnityEngine/SceneManagement/SceneManager.hpp"
-#include "UnityEngine/SceneManagement/LoadSceneMode.hpp"
 #include "GlobalNamespace/GamePause.hpp"
 #include "GlobalNamespace/OculusVRHelper.hpp"
 #include "GlobalNamespace/SaberBurnMarkArea.hpp"
@@ -25,8 +17,28 @@
 #include "System/Action_1.hpp"
 #include "Zenject/DiContainer.hpp"
 #include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
+#include "UnityEngine/RectOffset.hpp"
+#include "UnityEngine/Events/UnityAction.hpp"
+#include "HMUI/Touchable.hpp"
+
+#include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
+
+#include <cstdlib>
+
+#include <string>
+
+#ifdef HAS_CODEGEN
+#define AddConfigValueIncrementFloat(parent, floatConfigValue, decimal, increment, min, max) BeatSaberUI::CreateIncrementSetting(parent, floatConfigValue.GetName(), decimal, increment, floatConfigValue.GetValue(), min, max, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { floatConfigValue.SetValue(value); }))
+
+#define AddConfigValueIncrementInt(parent, intConfigValue, increment, min, max) BeatSaberUI::CreateIncrementSetting(parent, intConfigValue.getName(), 0, 1, intConfigValue.getValue(), min, max, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<int>*>(classof(UnityEngine::Events::UnityAction_1<int>*), (void*)nullptr, +[](int value) { intConfigValue.setValue(value);}))
+
+#define AddConfigValueIncrementEnum(parent, enumConfigValue, enumClass, enumMap) BeatSaberUI::CreateIncrementSetting(parent, enumConfigValue.GetName() + " " + enumMap.at((int) enumConfigValue.GetValue()), 0, 1, (float) enumConfigValue.GetValue(), 0,(int) enumMap.size(), il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { enumConfigValue.SetValue((int)value); }))
+
+#endif
 
 using namespace GlobalNamespace;
+using namespace QuestUI;
+
 
 // Returns a logger, useful for printing debug messages
 Logger& getLogger() {
@@ -34,10 +46,20 @@ Logger& getLogger() {
     return *logger;
 }
 
+
+
+Configuration& getConfig() {
+    static Configuration configuration(modInfo);
+    return configuration;
+}
+
 extern "C" void setup(ModInfo& info) {
     info.id      = "TrickSaber";
     info.version = "0.3.0";
     modInfo      = info;
+    getConfig().Load();
+    getPluginConfig().Init(&getConfig());
+
     getLogger().info("Leaving setup!");
 }
 
@@ -66,7 +88,7 @@ MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameSc
                      System::Action_1<Zenject::DiContainer*>* finishCallback) {
     getLogger().debug("GameScenesManager_PushScenes");
     GameScenesManager_PushScenes(self, scenesTransitionSetupData, minDuration, afterMinDurationCallback, finishCallback);
-    PluginConfig::Instance().Reload();
+    getConfig().Reload();
     getLogger().debug("Leaving GameScenesManager_PushScenes");
 }
 
@@ -211,8 +233,88 @@ MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* s
     }
 }
 
+void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
+    getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
+
+    if(firstActivation) {
+        self->get_gameObject()->AddComponent<HMUI::Touchable*>();
+        UnityEngine::GameObject* container = BeatSaberUI::CreateScrollableSettingsContainer(self->get_transform());
+
+
+
+        auto* textGrid = container;
+//        textGrid->set_spacing(1);
+
+        BeatSaberUI::CreateText(textGrid->get_transform(), "TrickSaber settings. Restart to avoid crashes or side-effects.");
+
+        BeatSaberUI::CreateText(textGrid->get_transform(), "Settings are saved when changed.");
+
+//        buttonsGrid->set_spacing(1);
+
+        auto* boolGrid = container;
+
+        BeatSaberUI::CreateText(boolGrid->get_transform(), "Toggles and switches.");
+
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseTrigger);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonOne);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonTwo);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseGrip);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseThumbstick);
+
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().IsVelocityDependent);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().EnableTrickCutting);
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().CompleteRotationMode);
+
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().SlowmoDuringThrow);
+
+        auto* floatGrid = container;
+        BeatSaberUI::CreateText(floatGrid->get_transform(), "Numbers and math.");
+//        floatGrid->set_spacing(1);
+
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().GripThreshold, 2, 0.01, 0, 1);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ControllerSnapThreshold, 2, 0.01, 0, 1);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ThumbstickThreshold, 2, 0.01, 0, 1);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ControllerSnapThreshold, 2, 0.01, 0, 1);
+
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SpinSpeed, 1, 0.1, 0, 10);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ThrowVelocity, 1, 0.1, 0, 10);
+
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ReturnSpeed, 1, 0.1, 0, 10);
+
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoStepAmount, 1, 0.1, 0, 10);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoAmount, 1, 0.1, 0, 10);
+        AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().VelocityBufferSize, 0, 1, 0, 10);
+
+        auto* actionGrid = container;
+        BeatSaberUI::CreateText(actionGrid->get_transform(), "Actions", false);
+//        actionGrid->set_name(il2cpp_utils::createcsstr("Actions"));
+//        actionGrid->set_spacing(1);
+
+        AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().TriggerAction, TrickAction, ACTION_NAMES);
+        AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ButtonOneAction, TrickAction, ACTION_NAMES);
+        AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ButtonTwoAction, TrickAction, ACTION_NAMES);
+        AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().GripAction, TrickAction, ACTION_NAMES);
+        AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ThumbstickAction, TrickAction, ACTION_NAMES);
+
+        auto* miscGrid = container;
+        BeatSaberUI::CreateText(miscGrid->get_transform(), "Misc", false);
+//        miscGrid->set_spacing(1);
+
+        AddConfigValueIncrementEnum(miscGrid->get_transform(), getPluginConfig().SpinDirection, SpinDir, SPIN_DIR_NAMES);
+        AddConfigValueIncrementEnum(miscGrid->get_transform(), getPluginConfig().ThumbstickDirection, ThumbstickDir, THUMBSTICK_DIR_NAMES);
+
+
+    }
+}
+
+void DidDeActivate(HMUI::ViewController* self,bool removedFromHierarchy, bool screenSystemDisabling){
+    getLogger().info("Saving config because of menu");
+    getConfig().Write();
+    getConfig().Reload();
+}
+
 extern "C" void load() {
-    PluginConfig::Init();
+    il2cpp_functions::Init();
     // TODO: config menus
     getLogger().info("Installing hooks...");
 
@@ -246,4 +348,10 @@ extern "C" void load() {
     getLogger().info("Registered types");
 
     getLogger().info("Installed all hooks!");
+
+    getLogger().info("Starting CustomUI-Test installation...");
+
+    QuestUI::Init();
+    QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
+    getLogger().info("Successfully installed CustomUI-Test!");
 }

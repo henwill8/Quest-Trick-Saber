@@ -14,7 +14,7 @@ class TriggerHandler : public InputHandler {
         // axis names are from HMLib's VRControllersInputManager
         auto str = (node == UnityEngine::XR::XRNode::LeftHand) ? "TriggerLeftHand" : "TriggerRightHand";
         _inputString = il2cpp_utils::createcsstr(str, il2cpp_utils::StringType::Manual);
-        IsReversed = PluginConfig::Instance().ReverseTrigger;
+        IsReversed = getPluginConfig().ReverseTrigger.GetValue();
     }
 
     float GetInputValue() {

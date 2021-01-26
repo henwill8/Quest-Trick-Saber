@@ -14,8 +14,8 @@ class ButtonHandler : public InputHandler {
     ButtonHandler(GlobalNamespace::OVRInput::Controller oculusController, GlobalNamespace::OVRInput::Button button)
       : InputHandler(0.5f), _oculusController(oculusController), _button(button)
     {
-        IsReversed = button == GlobalNamespace::OVRInput::Button::One ? PluginConfig::Instance().ReverseButtonOne
-          : PluginConfig::Instance().ReverseButtonTwo;
+        IsReversed = button == GlobalNamespace::OVRInput::Button::One ? getPluginConfig().ReverseButtonOne.GetValue()
+          : getPluginConfig().ReverseButtonTwo.GetValue();
     }
 
     float GetInputValue() {

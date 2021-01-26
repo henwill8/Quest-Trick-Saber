@@ -7,6 +7,11 @@
 #include "GlobalNamespace/SaberClashEffect.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
 
+
+
+#include "questui/shared/QuestUI.hpp"
+#include "questui/shared/BeatSaberUI.hpp"
+
 static ModInfo modInfo;
 const Logger& logger();
 static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullptr;

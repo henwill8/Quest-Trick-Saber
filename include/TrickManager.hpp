@@ -36,7 +36,7 @@ struct ButtonMapping {
 		bool left;
 		// static ButtonMapping LeftButtons;
 		// static ButtonMapping RightButtons;
-		std::unordered_map<TrickAction, std::unordered_set<std::unique_ptr<InputHandler>>> actionHandlers;
+		std::unordered_map<int, std::unordered_set<std::unique_ptr<InputHandler>>> actionHandlers;
 
 		void Update();
 
