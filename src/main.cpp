@@ -260,6 +260,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
 
         BeatSaberUI::CreateText(boolGrid->get_transform(), "Toggles and switches.");
 
+        AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().VibrateOnReturn);
         AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseTrigger);
         AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonOne);
         AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonTwo);

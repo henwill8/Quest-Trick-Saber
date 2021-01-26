@@ -801,6 +801,18 @@ void TrickManager::ThrowEnd() {
     }
     EnableBurnMarks(_isLeftSaber ? 0 : 1);
     _throwState = Inactive;
+
+    UnityEngine::XR::XRNode node;
+    if (_isLeftSaber) {
+        node = UnityEngine::XR::XRNode::LeftHand;
+    } else {
+        node = UnityEngine::XR::XRNode::RightHand;
+    }
+
+    // Trigger vibration when saber returns
+    if (getPluginConfig().VibrateOnReturn.GetValue())
+        _vrPlatformHelper->TriggerHapticPulse(node, 2, 2.2f, 0.3f);
+
     TrickEnd();
 }
 

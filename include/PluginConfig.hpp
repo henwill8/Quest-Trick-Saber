@@ -17,6 +17,7 @@ DECLARE_VALUE(ThumbstickAction, int, "ThumbstickAction", (int)TrickAction::Spin)
 DECLARE_VALUE(ButtonOneAction, int, "ButtonOneAction",(int) TrickAction::None);
 DECLARE_VALUE(ButtonTwoAction, int, "ButtonTwoAction", (int) TrickAction::None);
 
+DECLARE_VALUE(VibrateOnReturn, bool, "VibrateOnReturn", true);
 DECLARE_VALUE(ReverseTrigger, bool, "ReverseTrigger", false);
 DECLARE_VALUE(ReverseGrip, bool, "ReverseGrip", false);
 DECLARE_VALUE(ReverseThumbstick, bool, "ReverseThumbstick", false);
@@ -54,6 +55,7 @@ DECLARE_VALUE(SlowmoStepAmount, float, "SlowmoStepAmount", 0.02f);
     INIT_FUNCTION(
         INIT_VALUE(TriggerAction);
 
+        INIT_VALUE(VibrateOnReturn);
         INIT_VALUE(GripAction);
         INIT_VALUE(ThumbstickAction);
         INIT_VALUE(ButtonOneAction);
