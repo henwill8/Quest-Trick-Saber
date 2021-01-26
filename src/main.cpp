@@ -22,6 +22,7 @@
 #include "HMUI/Touchable.hpp"
 
 #include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
+#include "bs-utils/shared/utils.hpp"
 
 #include <cstdlib>
 
@@ -89,6 +90,13 @@ MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameSc
     getLogger().debug("GameScenesManager_PushScenes");
     GameScenesManager_PushScenes(self, scenesTransitionSetupData, minDuration, afterMinDurationCallback, finishCallback);
     getConfig().Reload();
+
+    if (getPluginConfig().EnableTrickCutting.GetValue() || getPluginConfig().SlowmoDuringThrow.GetValue()) {
+        bs_utils::Submission::disable(modInfo);
+    } else {
+        bs_utils::Submission::enable(modInfo);
+    }
+
     getLogger().debug("Leaving GameScenesManager_PushScenes");
 }
 
