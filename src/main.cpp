@@ -357,9 +357,9 @@ extern "C" void load() {
 
     getLogger().info("Installed all hooks!");
 
-    getLogger().info("Starting CustomUI-Test installation...");
+    getLogger().info("Starting Settings UI installation...");
 
     QuestUI::Init();
     QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
-    getLogger().info("Successfully installed CustomUI-Test!");
+    getLogger().info("Successfully installed Settings UI!");
 }
