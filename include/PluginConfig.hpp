@@ -37,7 +37,7 @@ DECLARE_VALUE(SpinDirection, int, "SpinDirection",(int)  SpinDir::Backward);
 DECLARE_VALUE(ControllerSnapThreshold, float, "ControllerSnapThreshold", 0.3f);
 DECLARE_VALUE(ThrowVelocity, float, "ThrowVelocity", 1.0f);
 
-DECLARE_VALUE(EnableTrickCutting, bool, "EnableTrickCutting", false);
+DECLARE_VALUE(EnableTrickCutting, bool, "EnableTrickCutting (Broken)", false);
 DECLARE_VALUE(CompleteRotationMode, bool, "CompleteRotationMode", false);
 
 DECLARE_VALUE(ReturnSpeed, float, "ReturnSpeed", 10.0f);
