@@ -2,24 +2,12 @@
 #include <algorithm>
 #include <optional>
 #include <queue>
-#include "../include/PluginConfig.hpp"
 #include "../include/AllInputHandlers.hpp"
 #include "beatsaber-hook/shared/utils/instruction-parsing.hpp"
 #include "UnityEngine/Time.hpp"
-#include "UnityEngine/BoxCollider.hpp"
 #include "UnityEngine/Space.hpp"
 #include "UnityEngine/AudioSource.hpp"
-#include "GlobalNamespace/SaberClashEffect.hpp"
-#include "UnityEngine/XR/InputDevice.hpp"
-#include "UnityEngine/XR/InputTracking.hpp"
-#include "UnityEngine/GameObject.hpp"
-#include "UnityEngine/Object.hpp"
-#include "UnityEngine/Time.hpp"
-#include "UnityEngine/Quaternion.hpp"
-#include "UnityEngine/Transform.hpp"
-#include "UnityEngine/Resources.hpp"
 #include "main.hpp"
-#include "GlobalNamespace/SaberClashChecker.hpp"
 
 // Define static fields
 constexpr UnityEngine::Space RotateSpace = UnityEngine::Space::Self;
@@ -36,13 +24,20 @@ static bool _gamePaused;
 
 
 static const MethodInfo* VRController_get_transform = nullptr;
-static std::unordered_map<Il2CppObject*, Il2CppObject*> fakeTransforms;
+static std::unordered_map<GlobalNamespace::VRController*, UnityEngine::Transform*> fakeTransforms;
 static bool VRController_transform_is_hooked = false;
-MAKE_HOOK_OFFSETLESS(VRController_get_transform_hook, Il2CppObject*, Il2CppObject* self) {
+MAKE_HOOK_OFFSETLESS(VRController_get_transform_hook, UnityEngine::Transform*, GlobalNamespace::VRController* self) {
+
+
+    if (!getPluginConfig().EnableTrickCutting.GetValue())
+        return VRController_get_transform_hook(self);
+
     auto pair = fakeTransforms.find(self);
     if ( pair == fakeTransforms.end() ) {
         return VRController_get_transform_hook(self);
     } else {
+        getLogger().debug("Pair name: %s", to_utf8(csstrtostr(pair->second->get_name())).c_str());
+
         return pair->second;
     }
 }
@@ -134,7 +129,7 @@ float Vector3_Distance(const UnityEngine::Vector3 &a, const UnityEngine::Vector3
 }
 
 float Vector3_Magnitude(const UnityEngine::Vector3 &v) {
-    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    return sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
 }
 
 UnityEngine::Vector3 Vector3_Add(const UnityEngine::Vector3 &a, const UnityEngine::Vector3 &b) {
@@ -224,7 +219,7 @@ UnityEngine::Vector3 TrickManager::GetAverageVelocity() {
 
 UnityEngine::Vector3 TrickManager::GetAverageAngularVelocity() {
     UnityEngine::Vector3 avg = Vector3_Zero;
-    for (size_t i = 0; i < _velocityBuffer.size(); i++) {
+    for (int i = 0; i < _velocityBuffer.size(); i++) {
         avg = Vector3_Add(avg, _angularVelocityBuffer[i]);
     }
     return Vector3_Divide(avg, _velocityBuffer.size());
@@ -303,7 +298,7 @@ void TrickManager::Start2() {
     CRASH_UNLESS(saberModelT);
     auto* saberGO = saberModelT->get_gameObject();
     getLogger().debug("root Saber gameObject: %p", Saber->get_gameObject());
-    _saberTrickModel = new SaberTrickModel(Saber, saberGO, saberModelT == basicSaberT);
+    _saberTrickModel = new SaberTrickModel(Saber, saberGO, saberModelT == basicSaberT || getPluginConfig().EnableTrickCutting.GetValue());
     // note that this is the transform of the whole Saber (as opposed to just the model) iff TrickCutting
     _originalSaberModelT = saberGO->get_transform();
 }
@@ -365,9 +360,9 @@ void TrickManager::Start() {
         _fakeTransform = fakeTransformGO->get_transform();
 
         auto* saberParentT = _saberT->get_parent();
-        _fakeTransform->set_parent(saberParentT);
+        _fakeTransform->SetParent(saberParentT);
         auto fakePos = _fakeTransform->get_localPosition();
-        getLogger().debug("fakePos: {%f, %f, %f}", fakePos.x, fakePos.y, fakePos.z);
+        getLogger().debug("fakePos: {%f, %f, %f} parent: %s", fakePos.x, fakePos.y, fakePos.z, to_utf8(csstrtostr(saberParentT->get_name())).c_str());
 
         // TODO: instead of patching this transform onto the VRController, add a clone VRController component to the object?
     }
@@ -457,7 +452,7 @@ void TrickManager::Update() {
 
         std::optional<UnityEngine::Quaternion> opt = std::optional(tmp);
 
-        oRot.swap(opt);
+        oRot.emplace(tmp);
         // if (getPluginConfig().EnableTrickCutting && oRot) {
         //     getLogger().debug("pre-manual VRController.Update rot: {%f, %f, %f, %f}", oRot->w, oRot->x, oRot->y, oRot->z);
         // }
@@ -468,12 +463,18 @@ void TrickManager::Update() {
     }
 
     // Note: iff TrickCutting, during throw, these properties are redirected to an unused object
-    _controllerPosition = VRController->get_position();
-    _controllerRotation = VRController->get_rotation();
+    _controllerPosition = VRController->get_transform()->get_position();
+    _controllerRotation = VRController->get_transform()->get_rotation();
 
     auto dPos = Vector3_Subtract(_controllerPosition, _prevPos);
     auto velocity = Vector3_Divide(dPos, getDeltaTime());
     _angularVelocity = GetAngularVelocity(_prevRot, _controllerRotation);
+
+    auto fakePos = _fakeTransform->get_localPosition();
+    getLogger().debug("fakePos: {%f, %f, %f} update %s", fakePos.x, fakePos.y, fakePos.z, to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
+
+    auto dCon = Vector3_Subtract(_prevPos,_controllerPosition);
+    float distanceController = Vector3_Magnitude(dCon);
 
     // float mag = Vector3_Magnitude(_angularVelocity);
     // if (mag) getLogger().debug("angularVelocity.x: %f, .y: %f, mag: %f", _angularVelocity.x, _angularVelocity.y, mag);
@@ -485,6 +486,11 @@ void TrickManager::Update() {
     // TODO: move these to LateUpdate?
     if (_throwState == Ending) {
         UnityEngine::Vector3 saberPos = _saberTrickModel->Rigidbody->get_position();
+
+        UnityEngine::Vector3 saberLogPos = _saberTrickModel->Rigidbody->get_transform()->get_localPosition();
+
+        getLogger().debug("Saber (%f %f %f) and controller pos (%f %f %f) and dist %f", saberLogPos.x, saberLogPos.y, saberLogPos.z, _controllerPosition.x, _controllerPosition.y, _controllerPosition.z, distanceController);
+
         auto d = Vector3_Subtract(_controllerPosition, saberPos);
         float distance = Vector3_Magnitude(d);
 
@@ -501,7 +507,7 @@ void TrickManager::Update() {
     }
     if (_spinState == Ending) {
         auto rot = CRASH_UNLESS(oRot);
-        auto targetRot = getPluginConfig().EnableTrickCutting.GetValue() ? _controllerRotation: Quaternion_Identity;
+        auto targetRot = getPluginConfig().EnableTrickCutting.GetValue() ? _controllerRotation : Quaternion_Identity;
 
         float angle = UnityEngine::Quaternion::Angle(rot, targetRot);
         // getLogger().debug("angle: %f (%f)", angle, 360.0f - angle);
@@ -523,6 +529,7 @@ void TrickManager::Update() {
                 InPlaceRotationEnd();
             } else {
                 rot = UnityEngine::Quaternion::Lerp(rot, targetRot, getDeltaTime() * 20.0f);
+
                 _originalSaberModelT->set_localRotation(rot);
             }
         }
@@ -794,6 +801,11 @@ void TrickManager::ThrowEnd() {
         _saberTrickModel->ChangeToActualSaber();
     } else {
         _collider->set_enabled(true);
+
+        _saberTrickModel->Rigidbody->get_transform()->set_localPosition(Vector3_Zero);
+//        _saberT->set_position(Vector3_Zero);
+//        _saberT->set_rotation(Quaternion_Identity);
+//        _saberT->set_localRotation(Quaternion_Identity);
         fakeTransforms.erase(VRController);
     }
     if (other->_throwState == Inactive) {
@@ -823,10 +835,6 @@ void TrickManager::InPlaceRotationStart() {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         _currentRotation = 0.0f;
     }
-
-
-    if (_saberTrickModel->basicSaber)
-        _saberTrickModel->RemoveTrail();
 
     if (getPluginConfig().IsVelocityDependent.GetValue()) {
         auto angularVelocity = GetAverageAngularVelocity();
@@ -858,11 +866,6 @@ void TrickManager::InPlaceRotationEnd() {
     if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->set_localRotation(Quaternion_Identity);
     }
-
-    Array<UnityEngine::MeshFilter*>* meshFilters = Saber->GetComponentsInChildren<UnityEngine::MeshFilter*>();
-
-    if (_saberTrickModel->basicSaber && meshFilters != nullptr)
-        _saberTrickModel->EnableTrail();
 
     getLogger().debug("%s spin end!", _isLeftSaber ? "Left" : "Right");
     _spinState = Inactive;

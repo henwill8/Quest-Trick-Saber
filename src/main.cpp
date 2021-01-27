@@ -218,8 +218,6 @@ MAKE_HOOK_OFFSETLESS(AudioTimeSyncController_Start, void, AudioTimeSyncControlle
 MAKE_HOOK_OFFSETLESS(SaberClashChecker_AreSabersClashing, bool, SaberClashChecker* self) {
     bool val = SaberClashChecker_AreSabersClashing(self);
 
-    getLogger().debug("saber clash effect: %i", self);
-
     return (rightSaber.doClashEffect && leftSaber.doClashEffect) && val;
 }
 
