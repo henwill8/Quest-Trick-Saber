@@ -36,7 +36,7 @@ MAKE_HOOK_OFFSETLESS(VRController_get_transform_hook, UnityEngine::Transform*, G
     if ( pair == fakeTransforms.end() ) {
         return VRController_get_transform_hook(self);
     } else {
-        getLogger().debug("Pair name: %s", to_utf8(csstrtostr(pair->second->get_name())).c_str());
+//        getLogger().debug("Pair name: %s", to_utf8(csstrtostr(pair->second->get_name())).c_str());
 
         return pair->second;
     }
@@ -474,8 +474,8 @@ void TrickManager::Update() {
 
     if (_fakeTransform) {
         auto fakePos = _fakeTransform->get_localPosition();
-        getLogger().debug("fakePos: {%f, %f, %f} update %s", fakePos.x, fakePos.y, fakePos.z,
-                          to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
+//        getLogger().debug("fakePos: {%f, %f, %f} update %s", fakePos.x, fakePos.y, fakePos.z,
+//                          to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
     }
 
     auto dCon = Vector3_Subtract(_prevPos,_controllerPosition);
