@@ -462,16 +462,21 @@ void TrickManager::Update() {
         VRController->Update(); // sets position and pre-_currentRotation
     }
 
-    // Note: iff TrickCutting, during throw, these properties are redirected to an unused object
-    _controllerPosition = VRController->get_transform()->get_position();
-    _controllerRotation = VRController->get_transform()->get_rotation();
+
+
+    // Note: if TrickCutting, during throw, these properties are redirected to an unused object
+    _controllerPosition = VRController->get_position();
+    _controllerRotation = VRController->get_rotation();
 
     auto dPos = Vector3_Subtract(_controllerPosition, _prevPos);
     auto velocity = Vector3_Divide(dPos, getDeltaTime());
     _angularVelocity = GetAngularVelocity(_prevRot, _controllerRotation);
 
-    auto fakePos = _fakeTransform->get_localPosition();
-    getLogger().debug("fakePos: {%f, %f, %f} update %s", fakePos.x, fakePos.y, fakePos.z, to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
+    if (_fakeTransform) {
+        auto fakePos = _fakeTransform->get_localPosition();
+        getLogger().debug("fakePos: {%f, %f, %f} update %s", fakePos.x, fakePos.y, fakePos.z,
+                          to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
+    }
 
     auto dCon = Vector3_Subtract(_prevPos,_controllerPosition);
     float distanceController = Vector3_Magnitude(dCon);
@@ -802,11 +807,37 @@ void TrickManager::ThrowEnd() {
     } else {
         _collider->set_enabled(true);
 
-        _saberTrickModel->Rigidbody->get_transform()->set_localPosition(Vector3_Zero);
 //        _saberT->set_position(Vector3_Zero);
 //        _saberT->set_rotation(Quaternion_Identity);
 //        _saberT->set_localRotation(Quaternion_Identity);
         fakeTransforms.erase(VRController);
+
+        // Update the transform
+        VRController->Update();
+//
+//
+//        _saberT->get_parent()->set_localPosition(Vector3_Zero);
+//        _saberT->get_parent()->set_position(VRController->get_position());
+////
+////        VRController->get_transform()->set_localPosition(Vector3_Zero);
+//        _saberTrickModel->Rigidbody->get_transform()->set_localPosition(Vector3_Zero);
+//        _saberTrickModel->SaberGO->get_transform()->set_localPosition(Vector3_Zero);
+//        _saberTrickModel->SaberGO->get_transform()->set_position(Vector3_Zero);
+////        _saberTrickModel->Rigidbody->get_transform()->set_position(VRController->get_position());
+////        _saberTrickModel->Rigidbody->get_transform()->set_rotation(VRController->get_rotation());
+////        _saberTrickModel->Rigidbody->get_transform()->set_localRotation(Quaternion_Identity);
+//        _saberT->set_localPosition(Vector3_Zero);
+//        Saber->saberBladeBottomTransform->set_localPosition(Vector3_Zero);
+//
+////        _saberT->set_position(VRController->get_position());
+//
+////        _saberT->set_rotation(VRController->get_rotation());
+////        _saberT->set_localRotation(Quaternion_Identity);
+//
+////        _originalSaberModelT->set_rotation(VRController->get_rotation());
+//        _originalSaberModelT->set_localRotation(Quaternion_Identity);
+//        _originalSaberModelT->set_localPosition(Vector3_Zero);
+////        _originalSaberModelT->set_position(VRController->get_position());
     }
     if (other->_throwState == Inactive) {
         ForceEndSlowmo();
@@ -865,6 +896,8 @@ void TrickManager::InPlaceRotationReturn() {
 void TrickManager::InPlaceRotationEnd() {
     if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->set_localRotation(Quaternion_Identity);
+    } else {
+        _originalSaberModelT->set_localRotation(_controllerRotation);
     }
 
     getLogger().debug("%s spin end!", _isLeftSaber ? "Left" : "Right");
