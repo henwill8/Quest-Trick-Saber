@@ -27,6 +27,7 @@ DECLARE_VALUE(ThumbstickDirection, int, "ThumbstickDirection",(int)  ThumbstickD
 DECLARE_VALUE(TriggerThreshold, float, "TriggerThreshold", 0.8f);
 DECLARE_VALUE(GripThreshold, float, "GripThreshold", 0.8f);
 DECLARE_VALUE(ThumbstickThreshold, float, "ThumbstickThreshold", 0.3f);
+DECLARE_VALUE(ControllerSnapThreshold, float, "ControllerSnapThreshold", 0.3f);
 
 DECLARE_VALUE(IsVelocityDependent, bool, "IsSpinVelocityDependent", false);
 
@@ -34,7 +35,6 @@ DECLARE_VALUE(SpinSpeed, float, "SpinSpeed", 1.0f);
 
 DECLARE_VALUE(SpinDirection, int, "SpinDirection",(int)  SpinDir::Backward);
 
-DECLARE_VALUE(ControllerSnapThreshold, float, "ControllerSnapThreshold", 0.3f);
 DECLARE_VALUE(ThrowVelocity, float, "ThrowVelocity", 1.0f);
 
 DECLARE_VALUE(EnableTrickCutting, bool, "EnableTrickCutting (Broken)", false);
