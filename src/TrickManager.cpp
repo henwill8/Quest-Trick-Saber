@@ -747,6 +747,11 @@ void TrickManager::ThrowStart() {
         _throwState = Started;
 
         if (getPluginConfig().SlowmoDuringThrow.GetValue()) {
+            if (!audioTimeSyncController) {
+                getLogger().debug("No audio time sync controller?");
+                audioTimeSyncController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::AudioTimeSyncController*>();
+                return;
+            }
             _audioSource = audioTimeSyncController->get_audioSource();
             if (_slowmoState != Started) {
                 // ApplySlowmoSmooth
