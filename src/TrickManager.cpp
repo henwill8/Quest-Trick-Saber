@@ -583,6 +583,14 @@ bool CheckHandlersUp(decltype(ButtonMapping::actionHandlers)::mapped_type& handl
 }
 
 void TrickManager::CheckButtons() {
+    // Disable tricks while viewing replays.
+    auto* replayMode = getenv("ViewingReplay");
+
+//    getLogger().debug("replay mode val: %s", replayMode);
+
+    // TODO: Remove false condition here when replay fixes bug
+    if (false && replayMode && (strcmp(replayMode, "true") == 0)) return;
+
     float power;
     if ((_throwState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Throw], power)) {
         ThrowStart();
