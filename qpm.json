@@ -4,7 +4,7 @@
   "info": {
     "name": "TrickSaber",
     "id": "TrickSaber",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "url": "https://github.com/Fernthedev/Quest-Trick-Saber",
     "additionalData": {
       "soLink": "https://github.com/Fernthedev/Quest-Trick-Saber/releases/download/v0.3.0/libtricksaber.so",

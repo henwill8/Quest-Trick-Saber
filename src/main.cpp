@@ -54,7 +54,7 @@ Configuration& getConfig() {
 
 extern "C" void setup(ModInfo& info) {
     info.id      = "TrickSaber";
-    info.version = "0.3.0";
+    info.version = "0.3.1";
     modInfo      = info;
     getConfig().Load();
     getPluginConfig().Init(info);
