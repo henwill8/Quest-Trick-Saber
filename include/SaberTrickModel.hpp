@@ -27,6 +27,8 @@
 #include "System/Collections/Generic/List_1.hpp"
 #include "SaberTrickTrail.hpp"
 
+const std::string saberPrefix = "trick_saber_";
+
 class SaberTrickModel {
   public:
     UnityEngine::Rigidbody* Rigidbody = nullptr;
@@ -63,18 +65,29 @@ class SaberTrickModel {
             TrickModel = UnityEngine::Object::Instantiate(RealModel);
             CRASH_UNLESS(TrickModel);
             TrickModel->set_name(il2cpp_utils::createcsstr(
-                    "trick_saber_" + to_utf8(csstrtostr(SaberModel->get_name()))
+                     saberPrefix + to_utf8(csstrtostr(SaberModel->get_name()))
                     ));
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
-            FixBasicTrickSaber(TrickModel, basicSaber);
-            AddTrickRigidbody();
 
             TrickT = TrickModel->get_transform();
             if (AttachForSpin) SpinT = TrickT;
 
             if (TrailFollowsSaberComponent) {
                 TrickSaber = TrickModel->GetComponent<GlobalNamespace::Saber *>();
+
+                if (!TrickSaber) {
+                    TrickSaber = TrickModel->AddComponent<GlobalNamespace::Saber*>();
+                    TrickSaber->movementData = GlobalNamespace::SaberMovementData::New_ctor();
+                    TrickSaber->saberType = RealSaber->saberType;
+                    TrickSaber->saberBladeBottomTransform = RealSaber->saberBladeBottomTransform;
+                    TrickSaber->saberBladeTopTransform = RealSaber->saberBladeTopTransform;
+                    TrickSaber->handleTransform = RealSaber->handleTransform;
+                    TrickSaber->saberBladeBottomPos = RealSaber->saberBladeBottomPos;
+                    TrickSaber->saberBladeTopPos = RealSaber->saberBladeTopPos;
+                }
+
                 CRASH_UNLESS(TrickSaber);
+                getLogger().debug("Trick saber component found");
                 CRASH_UNLESS(TrickSaber != RealSaber);
                 getLogger().debug("Inserting TrickSaber %p to fakeSabers.", TrickSaber);
                 fakeSabers.insert(TrickSaber);
@@ -149,8 +162,13 @@ class SaberTrickModel {
 
         GlobalNamespace::SaberModelContainer *oldSaberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer *>(
                 false)->values[0];
-        GlobalNamespace::SaberModelContainer *newSaberModelContainer = newSaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer *>(
-                false)->values[0];
+        GlobalNamespace::SaberModelContainer *newSaberModelContainer = newSaberGO->GetComponent<GlobalNamespace::SaberModelContainer *>();
+
+        if (!newSaberModelContainer) {
+            getLogger().debug("Container create");
+            newSaberModelContainer = newSaberGO->AddComponent<GlobalNamespace::SaberModelContainer *>();
+            CRASH_UNLESS(newSaberModelContainer->saber != TrickSaber);
+        }
 
         auto *diContainer = oldSaberModelContainer->container;
         newSaberModelContainer->container = diContainer;
@@ -159,21 +177,21 @@ class SaberTrickModel {
         GlobalNamespace::SaberType saberType = _saberTypeObject->saberType; // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(_saberTypeObject, "saberType"));
         getLogger().debug("saber type: %i", saberType);
 //        CRASH_UNLESS(saberType);
-        auto *saberModelContainerT = oldSaberModelContainer->get_transform();
+        auto *newSaberModelContainerT = newSaberModelContainer->get_transform();
         getLogger().debug("saber container");
-        CRASH_UNLESS(saberModelContainerT);
+        CRASH_UNLESS(newSaberModelContainerT);
 
-        auto *saberModelController = newSaberGO->GetComponent<GlobalNamespace::SaberModelController *>();
+        auto *newSaberModelController = newSaberGO->GetComponent<GlobalNamespace::SaberModelController *>();
         getLogger().debug("saber controller");
-        CRASH_UNLESS(saberModelController);
+        CRASH_UNLESS(newSaberModelController);
 
-        auto *origModelController = SaberGO->GetComponent<GlobalNamespace::SaberModelController *>(); // CRASH_UNLESS(il2cpp_utils::RunMethod(SaberGO, "GetComponent", tSaberModelController));
+        auto *origModelController = SaberGO->GetComponentInChildren<GlobalNamespace::SaberModelController *>(); // CRASH_UNLESS(il2cpp_utils::RunMethod(SaberGO, "GetComponent", tSaberModelController));
         auto *colorMgr = origModelController->colorManager; // CRASH_UNLESS(il2cpp_utils::GetFieldValue(origModelController, "_colorManager"));
         getLogger().debug("saber color manager");
         CRASH_UNLESS(colorMgr);
-        saberModelController->colorManager = colorMgr;
+        newSaberModelController->colorManager = colorMgr;
 
-        auto *glows = saberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
+        auto *glows = newSaberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
         getLogger().debug("_setSaberGlowColors.length: %u", glows->Length());
         for (int i = 0; i < glows->Length(); i++) {
             GlobalNamespace::SetSaberGlowColor *obj = glows->values[i];
@@ -181,7 +199,7 @@ class SaberTrickModel {
             obj->colorManager = colorMgr;
         }
 
-        auto *fakeGlows = saberModelController->setSaberFakeGlowColors;
+        auto *fakeGlows = newSaberModelController->setSaberFakeGlowColors;
         getLogger().debug("_setSaberFakeGlowColors.length: %u", fakeGlows->Length());
         for (int i = 0; i < fakeGlows->Length(); i++) {
             GlobalNamespace::SetSaberFakeGlowColor *obj = fakeGlows->values[i];
@@ -190,7 +208,21 @@ class SaberTrickModel {
 
         }
 
-        saberModelController->Init(saberModelContainerT, TrickSaber);
+        newSaberModelController->saberTrail = origModelController->saberTrail;
+
+        getLogger().debug("New Saber model controller");
+        CRASH_UNLESS(newSaberModelController);
+        getLogger().debug("Saber model controller transform");
+        CRASH_UNLESS(newSaberModelContainerT);
+        getLogger().debug("Trick Saber instance");
+        CRASH_UNLESS(TrickSaber);
+        getLogger().debug("Init");
+        try {
+            newSaberModelController->Init(newSaberModelContainerT, TrickSaber);
+        } catch (il2cpp_utils::RunMethodException& e) {
+            getLogger().error("Error stacktrace: %s", to_utf8(csstrtostr(e.ex->stackTraceString)).c_str());
+            CRASH_UNLESS(true);
+        }
     }
 
     void PrepareForThrow() {
@@ -251,7 +283,6 @@ class SaberTrickModel {
         // TODO: bypass the hook entirely?
         TrickSaber->ManualUpdate();
     }
-
 
 
 
