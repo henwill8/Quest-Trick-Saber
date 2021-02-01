@@ -30,6 +30,7 @@ class SaberTrickModel {
     UnityEngine::GameObject* SaberGO;  // GameObject
     GlobalNamespace::Saber* saberScript;
     bool basicSaber;
+    const std::string saberPrefix = "trick_saber_";
 
     SaberTrickModel(GlobalNamespace::Saber* saber, UnityEngine::GameObject* SaberModel, bool basicSaber) {
         CRASH_UNLESS(SaberModel);
@@ -51,7 +52,7 @@ class SaberTrickModel {
             TrickModel = UnityEngine::Object::Instantiate(SaberModel);
             CRASH_UNLESS(TrickModel);
             TrickModel->set_name(il2cpp_utils::createcsstr(
-                    "trick_saber_" + to_utf8(csstrtostr(SaberModel->get_name()))
+                    saberPrefix + to_utf8(csstrtostr(SaberModel->get_name()))
                     ));
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
             FixBasicTrickSaber(TrickModel, basicSaber);

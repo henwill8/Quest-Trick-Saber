@@ -107,7 +107,13 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
 MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
     getLogger().debug("Saber_Start");
     Saber_Start(self);
-    getLogger().debug("Saber_Start original called");
+    getLogger().debug("Saber_Start original called name: %s", to_utf8(csstrtostr(self->get_name())).c_str());
+
+    if (to_utf8(csstrtostr(self->get_name())).starts_with(saberPrefix)) {
+        getLogger().debug("Ignoring trick start");
+        return;
+    }
+
     // saber->sabertypeobject->sabertype
     SaberType saberType = self->saberType->saberType;
     getLogger().debug("SaberType: %i", saberType);
