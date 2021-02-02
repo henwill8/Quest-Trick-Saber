@@ -54,6 +54,9 @@ class SaberTrickModel {
             TrickModel->set_name(il2cpp_utils::createcsstr(
                     saberPrefix + to_utf8(csstrtostr(SaberModel->get_name()))
                     ));
+            TrickModel->get_transform()->GetParent()->get_gameObject()->set_name(il2cpp_utils::createcsstr(
+                    "BasicSaberModel" + to_utf8(csstrtostr(SaberModel->get_name()))
+                    ));
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
             FixBasicTrickSaber(TrickModel, basicSaber);
             AddTrickRigidbody();
